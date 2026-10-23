@@ -7,7 +7,7 @@ export default (request: Request): Promise<Response> => proxyImage(request)
 export const config = {
   path: '/api/image-proxy',
   rateLimit: {
-    windowLimit: 30,
+    windowLimit: 120,
     windowSize: 60,
     aggregateBy: ['ip', 'domain'],
   },

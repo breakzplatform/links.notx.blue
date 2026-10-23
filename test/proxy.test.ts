@@ -694,11 +694,11 @@ describe('proxy: fetch handler with mocked global fetch', () => {
       expect(((await res.json()) as { error: string }).error).toBe('same-origin-required')
     })
 
-    it('is routed at /api/image-proxy with 30 requests per 60 s per IP', () => {
+    it('is routed at /api/image-proxy with 120 requests per 60 s per IP', () => {
       expect(imageProxyConfig).toEqual({
         path: '/api/image-proxy',
         rateLimit: {
-          windowLimit: 30,
+          windowLimit: 120,
           windowSize: 60,
           aggregateBy: ['ip', 'domain'],
         },
