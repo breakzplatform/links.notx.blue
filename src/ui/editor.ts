@@ -1,3 +1,4 @@
+import './editor.css'
 import type { Crop } from '../lib/image/crop'
 import { initialCrop, panCrop, zoomCrop } from '../lib/image/crop'
 import { encodeIcon } from '../lib/image/encode'
