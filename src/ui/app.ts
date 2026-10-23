@@ -14,26 +14,21 @@ import { subscribeLocale, t } from '../i18n'
 import { createAuth, isCancelledSignIn, isInvalidScope, normalizeSignInInput, type Auth } from '../oauth'
 import { friendlyError, invalidLinkText } from './errors'
 import { createEditorState, releaseEditor, renderEditor, type EditorState } from './editor'
-import { renderLanding } from './landing'
+import { renderLanding, renderPromo } from './landing'
 import { controlId, renderLinks, type ConfirmRequest } from './links'
 import { fetchProfile, type PublicProfile } from './profile'
+import { renderLinksSkeleton } from './skeleton'
 import type { Shell } from './shell'
 
 type Mode = 'boot' | 'signed-out' | 'list' | 'editor'
 
 export async function startApp(shell: Shell): Promise<void> {
-  shell.setStatus(t('restoring'))
-  shell.setBusy(true)
-
   let auth: Auth | null = null
-  let authError = ''
-  try {
-    auth = await createAuth()
-  } catch (error) {
-    authError = friendlyError(error)
-  }
-
-  let mode: Mode = 'boot'
+  let authError: unknown
+  const restoring = hasSessionHint()
+  let mode: Mode = restoring ? 'boot' : 'signed-out'
+  let loaded = false
+  let authReady: Promise<void>
   let session: OAuthSession | undefined
   let xrpc: Xrpc | null = null
   let profile: PublicProfile | null = null
@@ -42,9 +37,9 @@ export async function startApp(shell: Shell): Promise<void> {
   let confirm: ConfirmRequest = null
   let editor: EditorState | null = null
   let editing: LinkView | undefined
-  let busy = false
-  let status = ''
-  let error = authError
+  let busy = restoring
+  let status = restoring ? t('restoring') : ''
+  let error = ''
   let signingOut = false
   let signInFlight = false
   let requestId = 0
@@ -78,8 +73,8 @@ export async function startApp(shell: Shell): Promise<void> {
     const active = document.activeElement
     const activeId = active instanceof HTMLElement && active.id && shell.main.contains(active) ? active.id : ''
 
-    if (mode === 'boot') {
-      shell.main.replaceChildren()
+    if (mode === 'boot' || (mode === 'list' && !loaded && busy)) {
+      renderLinksSkeleton(shell.main)
     } else if (mode === 'editor' && editor) {
       renderEditor(shell.main, {
         state: editor,
@@ -109,6 +104,7 @@ export async function startApp(shell: Shell): Promise<void> {
         profile,
         shown,
         hidden,
+        status,
         busy,
         error,
         repair: repair !== null,
@@ -147,8 +143,10 @@ export async function startApp(shell: Shell): Promise<void> {
           openEditor(link)
         },
       })
+      if (!shell.main.querySelector('.db-callout-promo')) shell.main.firstElementChild?.append(renderPromo())
     } else {
       renderLanding(shell.main, {
+        status,
         busy,
         error,
         onSignIn: value => void signIn(value),
@@ -156,6 +154,10 @@ export async function startApp(shell: Shell): Promise<void> {
       })
     }
 
+    if (busy) {
+      const empty = shell.main.querySelector<HTMLElement>('.empty')
+      if (empty) empty.hidden = true
+    }
     painting = false
     shell.setStatus(status)
 
@@ -232,13 +234,14 @@ export async function startApp(shell: Shell): Promise<void> {
     mode = 'list'
     render()
     try {
-      const [loaded, nextProfile] = await Promise.all([
+      const [result, nextProfile] = await Promise.all([
         loadLinks(xrpc),
         fetchProfile(session.did),
       ])
       if (id !== requestId) return false
-      shown = loaded.shown
-      hidden = loaded.hidden
+      shown = result.shown
+      hidden = result.hidden
+      loaded = true
       profile = nextProfile
       confirm = null
       busy = false
@@ -265,31 +268,33 @@ export async function startApp(shell: Shell): Promise<void> {
   }
 
   async function boot(): Promise<void> {
-    if (!auth) {
-      mode = 'signed-out'
-      busy = false
-      status = ''
-      render()
-      return
-    }
-    mode = 'boot'
-    busy = true
-    status = t('restoring')
-    render()
     try {
+      auth = await createAuth()
+      auth.onDeleted(() => sessionDeleted())
+      const id = requestId
       const restored = await auth.init()
+      if (id !== requestId) return
       if (!restored) {
+        if (signInFlight) return
+        setSessionHint(false)
+        if (mode === 'signed-out') return
         mode = 'signed-out'
         busy = false
         status = ''
         render()
         return
       }
+      setSessionHint(true)
+      if (signInFlight) return
       session = restored
-      xrpc = await auth.xrpcFor(restored)
+      const restoredXrpc = await auth.xrpcFor(restored)
+      if (id !== requestId) return
+      xrpc = restoredXrpc
       mode = 'list'
       await reload()
     } catch (err) {
+      authError = err
+      if (signInFlight) return
       session = undefined
       xrpc = null
       mode = 'signed-out'
@@ -302,13 +307,16 @@ export async function startApp(shell: Shell): Promise<void> {
 
   async function signIn(raw: string): Promise<void> {
     const input = normalizeSignInInput(raw)
-    if (!auth || busy || !input) return
+    if (busy || !input) return
     busy = true
     error = ''
     status = t('signingIn')
     signInFlight = true
+    setSessionHint(true)
     render()
     try {
+      await authReady
+      if (!auth) throw authError ?? new Error(t('sessionEnded'))
       // Redirect mode navigates away and never resolves. A return through the
       // back-forward cache rejects later; pageshow decides whether that is a cancel.
       await auth.signIn(input)
@@ -341,6 +349,8 @@ export async function startApp(shell: Shell): Promise<void> {
       error = friendlyError(err)
     } finally {
       if (signedOut) {
+        setSessionHint(false)
+        loaded = false
         requestId += 1
         session = undefined
         xrpc = null
@@ -362,7 +372,9 @@ export async function startApp(shell: Shell): Promise<void> {
   }
 
   function sessionDeleted(): void {
+    setSessionHint(false)
     if (signingOut) return
+    loaded = false
     requestId += 1
     session = undefined
     xrpc = null
@@ -470,12 +482,34 @@ export async function startApp(shell: Shell): Promise<void> {
   })
 
   subscribeLocale(() => render())
-  if (auth) auth.onDeleted(() => sessionDeleted())
-  await boot()
+  render()
+  authReady = boot()
+  await authReady
 }
 
 function moveSiblingId(id: string): string | null {
   if (id.startsWith('move-up-')) return `move-down-${id.slice('move-up-'.length)}`
   if (id.startsWith('move-down-')) return `move-up-${id.slice('move-down-'.length)}`
   return null
+}
+
+export function hasSessionHint(): boolean {
+  const url = new URL(location.href)
+  const fragment = new URLSearchParams(url.hash.slice(1))
+  if (['code', 'state', 'iss'].some(key => url.searchParams.has(key) || fragment.has(key))) return true
+  if (import.meta.env.DEV && url.searchParams.has('mock') && url.searchParams.get('mock') !== 'out') return true
+  try {
+    return localStorage.getItem('links.session') === '1'
+  } catch {
+    return false
+  }
+}
+
+function setSessionHint(present: boolean): void {
+  try {
+    if (present) localStorage.setItem('links.session', '1')
+    else localStorage.removeItem('links.session')
+  } catch {
+    // Storage can be unavailable; OAuth remains the source of truth.
+  }
 }

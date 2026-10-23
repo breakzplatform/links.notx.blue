@@ -47,7 +47,7 @@ export function createShell(root: HTMLElement): Shell {
   })
   onRemoteThemeChange(syncTheme)
 
-  const status = el('p', { className: 'status', attrs: { role: 'status' } })
+  const status = el('p', { className: 'sr', attrs: { role: 'status' } })
   const main = el('main', { attrs: { id: 'content' } })
 
   const header = el('header', {},

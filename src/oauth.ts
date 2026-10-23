@@ -1,8 +1,4 @@
-import {
-  BrowserOAuthClient,
-  OAuthResponseError,
-  type OAuthSession,
-} from '@atproto/oauth-client-browser'
+import type { OAuthSession } from '@atproto/oauth-client-browser'
 import { HANDLE_RESOLVER, SCOPE } from './lib/config'
 import { createXrpc } from './lib/xrpc'
 import type { Did, Xrpc } from './lib/types'
@@ -39,7 +35,7 @@ export function normalizeSignInInput(input: string): string {
 }
 
 export function isInvalidScope(error: unknown): boolean {
-  if (error instanceof OAuthResponseError) return error.error === 'invalid_scope'
+  if (typeof error === 'object' && error !== null && 'error' in error && error.error === 'invalid_scope') return true
   return error instanceof Error && error.message.includes('invalid_scope')
 }
 
@@ -64,6 +60,7 @@ export async function createAuth(): Promise<Auth> {
     const mock = new URLSearchParams(location.search).get('mock')
     if (mock !== null) return (await import('../dev/mock-auth')).createMockAuth(mock)
   }
+  const { BrowserOAuthClient } = await import('@atproto/oauth-client-browser')
   const deleted = new Set<DeletedHandler>()
   const client = await BrowserOAuthClient.load({
     clientId: clientIdFor(),
