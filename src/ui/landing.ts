@@ -1,6 +1,7 @@
 import { t } from '../i18n'
 import { normalizeSignInInput } from '../oauth'
 import { el } from './dom'
+import { renderFaq } from './faq'
 
 export function renderLanding(
   main: HTMLElement,
@@ -9,7 +10,6 @@ export function renderLanding(
     error: string
     onSignIn: (handle: string) => void
     onBsky: () => void
-    onDemo: () => void
   },
 ): void {
   const handle = el('input', {
@@ -66,25 +66,17 @@ export function renderLanding(
 
   main.replaceChildren(
     el('section', { className: 'stack' },
-      el('h1', { className: 'display-title', attrs: { id: 'page-title', tabindex: '-1' }, text: t('landingTitle') }),
+      el('h1', { className: 'headline', attrs: { id: 'page-title', tabindex: '-1' }, text: t('landingTitle') }),
       el('p', { className: 'lead', text: t('landingLead') }),
       error,
       el('section', { className: 'panel cast sign-in', attrs: { 'aria-labelledby': 'sign-in-title' } },
         el('h2', { className: 'panel-h', attrs: { id: 'sign-in-title' }, text: t('signInTitle') }),
-        el('div', { className: 'panel-b' }, form),
+        el('div', { className: 'panel-b stack' },
+          el('p', { text: t('signInLead') }),
+          form,
+        ),
       ),
-      el('p', { className: 'hint' }, t('privacySummary'), ' ', el('a', { attrs: { href: privacyLink() }, text: t('privacyLink') })),
-      el('p', {}, el('button', { className: 'btn cast press', attrs: { type: 'button', id: 'try-editor' }, text: t('tryEditor') })),
+      renderFaq(),
     ),
   )
-  const demo = main.querySelector('#try-editor')
-  if (demo instanceof HTMLButtonElement) {
-    demo.disabled = options.busy
-    demo.addEventListener('click', () => options.onDemo())
-  }
-}
-
-function privacyLink(): string {
-  if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') return '/privacy.html'
-  return '/privacy'
 }

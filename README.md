@@ -16,8 +16,6 @@ Sign in with your handle (or with the bsky.social button), and the page lists th
 
 The icon can come from a file, an image URL, the site's own favicon, or a preset (a letter or an emoji on a coloured circle). The editor crops it square, shows how it will look in Bluesky's profile row, and saves it.
 
-To see the editor without signing in, use **Try the icon editor** on the home page. Demo mode builds the icon the same way but cannot save.
-
 The interface is in English and Brazilian Portuguese. It follows your browser's language, and the button at the top switches it. The theme button cycles light, dark and terminal.
 
 ## How it works
@@ -49,15 +47,15 @@ npm run build      # production build into dist/
 
 ```
 .
-├── index.html, privacy.html, 404.html   # Vite entry points, with the page metadata
+├── index.html, 404.html   # Vite entry points, with the page metadata
 ├── src/
-│   ├── main.ts             # boots the shell, then the app or the privacy page
+│   ├── main.ts             # boots the shell, then the app
 │   ├── oauth.ts            # OAuth client, sign-in and session restore
 │   ├── i18n.ts             # English and Brazilian Portuguese strings
 │   ├── styles.css          # the site's own components, on design system tokens
 │   ├── assets/             # compiled Tailwind CSS, version in the file name
 │   ├── lib/                # link rules, profile records, XRPC, image crop and encode
-│   └── ui/                 # views: shell, landing, links, editor, privacy
+│   └── ui/                 # views: shell, landing, links, editor, faq
 ├── server/proxy.ts         # image proxy handler and its guards
 ├── netlify/functions/      # the proxy as a Netlify Function, with its route and rate limit
 ├── public/                 # copied as is: client metadata, og.png, icons, manifest
@@ -94,7 +92,7 @@ Edit `scripts/og.html` or `scripts/avatar.svg`, then run `./scripts/build-social
 
 ### Deploying
 
-The Netlify site `links-notx-blue` builds from `netlify.toml`. Pushes to `main` deploy automatically. `dist/404.html` is the not-found page and `dist/privacy.html` is served at `/privacy`. To deploy by hand:
+The Netlify site `links-notx-blue` builds from `netlify.toml`. Pushes to `main` deploy automatically. `dist/404.html` is the not-found page and `/privacy` redirects (301) to the shared policy at <https://notx.blue/privacy>. To deploy by hand:
 
 ```sh
 NETLIFY_AUTH_TOKEN=... NETLIFY_SITE_ID=... npm run deploy
@@ -104,4 +102,4 @@ DNS: `links` is a DNS-only CNAME to `links-notx-blue.netlify.app` on the `notx.b
 
 ## Contact
 
-Abuse: abuse@joseli.to. Privacy policy at <https://links.notx.blue/privacy>.
+Abuse: abuse@notx.blue. Privacy policy: <https://notx.blue/privacy>.

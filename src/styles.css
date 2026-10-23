@@ -56,7 +56,7 @@ h1[tabindex="-1"]:focus { outline: none; }
    has, and it has to fit 15 characters on a phone. */
 .wordmark-link {
   display: block;
-  margin: var(--space-10) 0 var(--space-4);
+  margin: var(--space-10) 0 var(--space-6);
   font: var(--weight-display) clamp(32px, 10vw, 76px)/1.1 var(--font-display);
   letter-spacing: var(--tracking-display);
   color: var(--text-1);
@@ -86,17 +86,54 @@ h1[tabindex="-1"]:focus { outline: none; }
   min-height: var(--target);
 }
 
-.masthead { margin-bottom: var(--space-10); }
+.masthead { margin-bottom: var(--space-8); }
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
 
+/* Footer, as on down.blue: meta line, fine print, then the support chips. */
 .site-foot {
   margin-top: var(--space-11);
   padding-top: var(--space-6);
-  border-top: 0;
-  justify-content: center;
-  gap: var(--space-3) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
   text-align: center;
 }
-.site-foot a { text-transform: none; }
+.site-foot p { max-width: 62ch; }
+.site-foot .meta-line a { text-transform: none; }
+.note-line { font: var(--type-code); color: var(--text-3); }
+.support {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+.micro {
+  margin-right: var(--space-2);
+  color: var(--text-3);
+  font: var(--type-label);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+}
+.chip-link, .chip-link:visited, .chip-link:hover {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target);
+  padding: 5px 9px;
+  font: var(--type-label);
+  letter-spacing: var(--tracking-meta);
+  text-transform: uppercase;
+  text-decoration: none;
+}
+a.chip-pix, a.chip-pix:visited, a.chip-pix:hover { background: var(--ink-pix); color: var(--on-pix); }
+a.chip-coffee, a.chip-coffee:visited, a.chip-coffee:hover { background: var(--ink-yellow); color: var(--on-yellow); }
+a.chip-sponsors, a.chip-sponsors:visited, a.chip-sponsors:hover { background: var(--ink-sponsors); color: var(--on-sponsors); }
 
 .status {
   margin-bottom: var(--space-6);
@@ -107,7 +144,11 @@ h1[tabindex="-1"]:focus { outline: none; }
 }
 .status:empty { display: none; }
 
-.lead { font: var(--type-reading); max-width: var(--measure-reading); color: var(--text-2); }
+.headline {
+  font: var(--weight-bold) var(--text-display-4)/1.25 var(--font-body);
+  text-align: center;
+}
+.lead { font: var(--type-body); max-width: var(--measure-reading); margin-inline: auto; color: var(--text-2); text-align: center; }
 .empty { color: var(--text-2); }
 
 /* Buttons: 44px touch targets on top of the DS .btn. */
@@ -232,9 +273,28 @@ legend {
 .note .hint:empty { display: none; }
 div.alert { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); }
 
-/* Landing */
-.sign-in { margin: var(--space-4) 0; }
-.sign-in .panel-b { padding: var(--space-7); }
+/* Panels: the DS panel with the project ink in the head. */
+.panel { margin: 0; }
+.panel-h.split { display: flex; justify-content: space-between; gap: var(--space-4); font-size: var(--text-caption); }
+.panel-b { padding: var(--space-6); }
+.panel-b > .stack, .panel-b.stack { gap: var(--space-5); }
+
+/* Landing: the buttons stack at full width, like skypicker's sign-in. */
+.sign-in .actions { flex-direction: column; align-items: stretch; gap: var(--space-5); }
+
+.faq-list { display: flex; flex-direction: column; padding: 0; }
+.faq-item { border-bottom: 1px dotted var(--border-dotted); }
+.faq-item:last-child { border-bottom: 0; }
+.faq-item summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--target);
+  padding: var(--space-4) var(--space-6);
+  font: var(--weight-bold) var(--text-body-sm)/1.35 var(--font-body);
+  cursor: pointer;
+}
+.faq-item[open] summary { color: var(--project-ink); }
+.faq-item p { padding: 0 var(--space-6) var(--space-5); color: var(--text-2); font: var(--type-dek); }
 
 /* Profile */
 .profile {
@@ -251,14 +311,6 @@ div.alert { display: flex; flex-direction: column; align-items: flex-start; gap:
   overflow-wrap: anywhere;
 }
 .handle { color: var(--text-3); overflow-wrap: anywhere; }
-
-.section-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--space-6);
-  margin-top: var(--space-4);
-}
 
 /* Link list: a ranked feed, rank numerals in spot red. */
 .links {
@@ -301,7 +353,6 @@ p.url { color: var(--text-3); }
   .link.ranked .actions { grid-column: 3 / -1; }
 }
 
-.hidden-records { margin-top: var(--space-10); }
 
 .confirm {
   display: flex;
@@ -312,7 +363,7 @@ p.url { color: var(--text-3); }
 }
 
 /* Icons are square 2px boxes, except in the Bluesky row preview. */
-.link-icon, .avatar, .fake-icon {
+.link-icon, .avatar {
   width: 40px;
   height: 40px;
   display: block;
@@ -426,54 +477,55 @@ p.url { color: var(--text-3); }
   user-select: none;
 }
 
-/* Preview */
-.preview {
-  margin-top: var(--space-6);
-  padding-top: var(--space-6);
-  border-top: var(--border);
-}
-.preview-row {
-  display: flex;
-  gap: var(--space-6);
-  align-items: flex-start;
-}
-.preview-link {
-  width: 5.5rem;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  font: var(--type-caption);
-}
-/* The row mimics Bluesky's profile, which draws link icons as circles. */
-.preview-link .link-icon, .preview-link .fake-icon {
-  border-radius: 50%;
-  border-width: 1px;
-}
-.fake-icon {
+/* Preview: the Bluesky app's profile-links row, drawn in both of its themes.
+   These colours and sizes belong to Bluesky (social-app profileLinks and the
+   @bsky.app/alf palette), not to this design system, so they are literals
+   scoped to .bsky and not tokens. */
+.mocks {
   display: grid;
-  place-items: center;
-  background: var(--surface-fill);
-  color: var(--text-1);
-  font: var(--weight-bold) 15px/1 var(--font-body);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: var(--space-5);
 }
-.preview-link figcaption {
-  margin-top: var(--space-2);
-  overflow-wrap: anywhere;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-.preview-link.current {
-  outline: 2px solid var(--text-1);
-  outline-offset: 4px;
-}
-.marker {
-  font: var(--type-label);
+.bsky { margin: 0; display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+.bsky figcaption {
+  color: var(--text-3);
+  font: var(--type-meta);
   letter-spacing: var(--tracking-meta);
   text-transform: uppercase;
 }
+.bsky-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: var(--border);
+  background: var(--bsky-bg);
+  color: var(--bsky-text);
+  font: 500 14px/20px system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  letter-spacing: 0;
+}
+.bsky-light { --bsky-bg: #FFFFFF; --bsky-text: #000000; --bsky-pill: #EFF2F6; --bsky-bar: #DCE2EA; }
+.bsky-dark { --bsky-bg: #000000; --bsky-text: #FFFFFF; --bsky-pill: #19222E; --bsky-bar: #232E3E; }
+.bsky-bio { display: flex; flex-direction: column; gap: 6px; }
+.bsky-bar { height: 10px; border-radius: 5px; background: var(--bsky-bar); }
+.bsky-bar:first-child { width: 72%; }
+.bsky-bar:last-child { width: 46%; }
+.bsky-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.bsky-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--bsky-pill);
+}
+.bsky-pill .icon { stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.bsky-pill > .icon { margin-left: -4px; }
+.bsky-slot { display: flex; width: 17px; height: 17px; margin-inline: -2px; align-items: center; justify-content: center; }
+.bsky-favicon { width: 16px; height: 16px; border-radius: 2.67px; object-fit: cover; }
+.bsky-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bsky-pill.current { outline: 2px solid var(--project-ink); outline-offset: 2px; }
 
 .zoom-figure { margin: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .zoom-figure figcaption {
@@ -483,10 +535,10 @@ p.url { color: var(--text-3); }
   text-transform: uppercase;
 }
 .zoom-preview {
-  width: 10rem;
-  height: 10rem;
-  object-fit: contain;
-  border: var(--border);
+  width: 64px;
+  height: 64px;
+  border-radius: 10.67px;
+  object-fit: cover;
 }
 .zoom-empty { color: var(--text-2); }
 
@@ -533,11 +585,5 @@ li[data-state="error"] .step-state {
   border-color: var(--status-error);
 }
 #save-status:empty { display: none; }
-
-/* Privacy */
-.prose { gap: var(--space-8); }
-.prose section { display: flex; flex-direction: column; gap: var(--space-3); }
-.prose h2 { margin: 0; font-size: var(--text-feed-title); line-height: 1.3; }
-.prose p { margin: 0; }
 
 .not-found h2 { margin-top: var(--space-8); }

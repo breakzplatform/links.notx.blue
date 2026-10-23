@@ -31,15 +31,14 @@
 /* The DOM is built in TypeScript, so class names live in src/ as well as in
    the HTML entry points. */
 @source "../index.html";
-@source "../privacy.html";
 @source "../404.html";
 @source "../src/**/*.ts";
 
-/* links.notx.blue runs on the system's sky ink. One rule picks it for every
+/* links.notx.blue runs on the system's brown ink, the one hue no sibling site uses. One rule picks it for every
    theme: it sits on `:root, [data-theme]` after the imports, so it beats each
    theme block's default project ink and resolves to that theme's value. */
 :root,
 [data-theme] {
-  --project-ink: var(--ink-sky);
-  --project-ink-contrast: var(--on-sky);
+  --project-ink: var(--ink-brown);
+  --project-ink-contrast: var(--on-brown);
 }

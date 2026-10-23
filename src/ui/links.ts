@@ -2,6 +2,7 @@ import { MAX_PROFILE_LINKS, formatLinkUrl, getLinkHost } from '../lib/rules'
 import type { LinkView } from '../lib/profile-links'
 import { t } from '../i18n'
 import { el } from './dom'
+import { renderFaq } from './faq'
 import type { PublicProfile } from './profile'
 
 export type ConfirmRequest = { uri: string; kind: 'remove' | 'delete' } | null
@@ -66,35 +67,42 @@ export function renderLinks(
     })))
 
   const hidden = options.hidden.length === 0
-    ? el('p', { className: 'empty', text: t('hiddenEmpty') })
-    : el('ul', { className: 'links' }, ...options.hidden.map(link => row(link, {
-      busy: options.busy,
-      confirm: options.confirm,
-      index: 0,
-      count: 1,
-      mode: 'hidden',
-      addDisabled: atLimit || options.busy,
-      onAddBack: () => options.onAddBack(link),
-      onAsk: options.onAsk,
-      onConfirm: options.onConfirm,
-    })))
+    ? null
+    : el('section', { className: 'panel cast', attrs: { 'aria-labelledby': 'hidden-title' } },
+      el('h2', { className: 'panel-h', attrs: { id: 'hidden-title' }, text: t('hiddenHeading') }),
+      el('div', { className: 'panel-b stack' },
+        el('p', { className: 'hint', text: t('hiddenLead') }),
+        el('ul', { className: 'links' }, ...options.hidden.map(link => row(link, {
+          busy: options.busy,
+          confirm: options.confirm,
+          index: 0,
+          count: 1,
+          mode: 'hidden',
+          addDisabled: atLimit || options.busy,
+          onAddBack: () => options.onAddBack(link),
+          onAsk: options.onAsk,
+          onConfirm: options.onConfirm,
+        }))),
+      ),
+    )
 
   main.replaceChildren(
     el('section', { className: 'stack' },
-      profileBlock(options),
       error,
-      el('div', { className: 'section-head' },
-        el('h1', { attrs: { id: 'page-title', tabindex: '-1' }, text: t('shownHeading') }),
-        el('p', { className: 'meta', text: t('linksCount', { count: options.shown.length, max: MAX_PROFILE_LINKS }) }),
+      el('section', { className: 'panel cast', attrs: { 'aria-labelledby': 'page-title' } },
+        el('h1', { className: 'panel-h split', attrs: { id: 'page-title', tabindex: '-1' } },
+          el('span', { text: t('panelLinks') }),
+          el('span', { text: t('linksCount', { count: options.shown.length, max: MAX_PROFILE_LINKS }) }),
+        ),
+        el('div', { className: 'panel-b stack' },
+          profileBlock(options),
+          shown,
+          el('div', { className: 'actions' }, add),
+          limit,
+        ),
       ),
-      shown,
-      el('div', { className: 'actions' }, add),
-      limit,
-      el('section', { className: 'stack hidden-records' },
-        el('h2', { text: t('hiddenHeading') }),
-        el('p', { className: 'hint', text: t('hiddenLead') }),
-        hidden,
-      ),
+      hidden,
+      renderFaq(),
     ),
   )
 }

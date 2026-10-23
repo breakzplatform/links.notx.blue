@@ -29,6 +29,7 @@ import {
   type MessageKey,
 } from '../i18n'
 import { el, setText } from './dom'
+import { icon } from './icons'
 import { friendlyError, invalidLinkText, partialSaveText } from './errors'
 import { formatBytes, mimeName } from './format'
 
@@ -154,7 +155,6 @@ export function releaseEditor(state: EditorState): void {
 export function renderEditor(
   main: HTMLElement,
   options: {
-    demo: boolean
     state: EditorState
     shownCount: number
     link?: LinkView
@@ -264,8 +264,8 @@ export function renderEditor(
   const imageStatus = el('p', { attrs: { id: 'image-status' } })
   imageStatus.hidden = true
 
-  const rowPreview = el('div', { className: 'preview-row' })
-  const zoomPreview = el('img', { className: 'zoom-preview screen', attrs: { alt: '' } })
+  const mocks = el('div', { className: 'mocks' })
+  const zoomPreview = el('img', { className: 'zoom-preview', attrs: { alt: '', width: 64, height: 64 } })
   const previewMeta = el('p', { className: 'meta', attrs: { id: 'preview-meta' } })
   const previewEmpty = el('p', { className: 'zoom-empty', text: t('noIcon') })
 
@@ -365,39 +365,41 @@ export function renderEditor(
     tabButtons.get(tab)?.focus()
   })
 
-  const demoNote = el('p', { className: 'note warn', attrs: { id: 'demo-note' }, text: t('demoNote') })
   const form = el('form', { className: 'stack' },
     el('div', { className: 'actions' }, back),
     el('h1', {
-      className: 'display-title',
+      className: 'headline',
       attrs: { id: 'page-title', tabindex: '-1' },
-      text: options.demo ? t('editorDemo') : editing ? t('editorEdit') : t('editorNew'),
+      text: editing ? t('editorEdit') : t('editorNew'),
     }),
-    options.demo ? demoNote : null,
-    el('div', { className: 'note', attrs: { id: 'green-note' } },
-      el('p', { text: t('greenNote') }),
-      providerNote,
+    panel('panelAddress', 'panel-address',
+      el('div', { className: 'field-block' },
+        el('label', { className: 'label', attrs: { for: 'link-url' }, text: t('urlLabel') }),
+        el('span', { className: 'field cast' }, urlInput),
+        urlIssues,
+      ),
+      el('div', { className: 'field-block' },
+        el('label', { className: 'label', attrs: { for: 'link-title' } }, t('titleLabel'), ' ', titleCount),
+        el('span', { className: 'field cast' }, titleInput),
+        el('p', { className: 'hint', attrs: { id: 'title-hint' }, text: t('titleHint') }),
+        titleIssues,
+      ),
+      el('div', { className: 'note', attrs: { id: 'green-note' } },
+        el('p', { text: t('greenNote') }),
+        providerNote,
+      ),
     ),
-    el('div', { className: 'field-block' },
-      el('label', { className: 'label', attrs: { for: 'link-url' }, text: t('urlLabel') }),
-      el('span', { className: 'field cast' }, urlInput),
-      urlIssues,
+    panel('panelIcon', 'panel-icon',
+      el('div', { className: 'stack icon-source' },
+        tablist,
+        ...panels.values(),
+        imageStatus,
+        cropBlock,
+      ),
     ),
-    el('div', { className: 'field-block' },
-      el('label', { className: 'label', attrs: { for: 'link-title' } }, t('titleLabel'), ' ', titleCount),
-      el('span', { className: 'field cast' }, titleInput),
-      el('p', { className: 'hint', attrs: { id: 'title-hint' }, text: t('titleHint') }),
-      titleIssues,
-    ),
-    el('div', { className: 'stack icon-source' },
-      tablist,
-      ...panels.values(),
-      imageStatus,
-      cropBlock,
-    ),
-    el('section', { className: 'stack preview', attrs: { 'aria-labelledby': 'preview-heading' } },
-      el('h2', { attrs: { id: 'preview-heading' }, text: t('previewLabel') }),
-      rowPreview,
+    panel('panelPreview', 'panel-preview',
+      el('p', { className: 'hint', text: t('previewNote') }),
+      mocks,
       el('figure', { className: 'zoom-figure' },
         el('figcaption', { text: t('previewZoom') }),
         zoomPreview,
@@ -405,15 +407,16 @@ export function renderEditor(
       ),
       previewMeta,
     ),
-    saveStatus,
-    steps,
-    saveError,
-    el('div', { className: 'actions' }, saveButton),
+    panel('panelSave', 'panel-save',
+      saveStatus,
+      steps,
+      saveError,
+      el('div', { className: 'actions' }, saveButton),
+    ),
   )
 
   urlInput.setAttribute('aria-describedby', 'url-issues')
   titleInput.setAttribute('aria-describedby', 'title-hint title-count title-issues')
-  if (options.demo) saveButton.setAttribute('aria-describedby', 'demo-note')
 
   main.replaceChildren(form)
 
@@ -716,7 +719,7 @@ export function renderEditor(
   }
 
   async function save(): Promise<void> {
-    if (options.demo || !options.xrpc || state.saving) return
+    if (!options.xrpc || state.saving) return
     state.urlTouched = true
     const checked = validation()
     const title = validateTitle(state.title)
@@ -854,8 +857,7 @@ export function renderEditor(
 
     paintPreview(checked.url)
     const waiting = producesIcon(state.tab) && !state.encoded && !state.encoding && !state.encodeError && bitmapTab(state.tab) && !state.image
-    const saveBlocked = options.demo
-      || state.saving
+    const saveBlocked = state.saving
       || state.encoding
       || state.imageLoading
       || checked.issues.length > 0
@@ -864,7 +866,7 @@ export function renderEditor(
       || waiting
       || (producesIcon(state.tab) && !state.encoded)
     saveButton.disabled = saveBlocked
-    setText(saveButton, options.demo ? t('saveDemo') : t('save'))
+    setText(saveButton, t('save'))
     back.disabled = state.saving
     saveError.hidden = state.saveError.length === 0
     setText(saveError, state.saveError)
@@ -890,11 +892,7 @@ export function renderEditor(
       : state.tab === 'keep'
         ? state.keepIconUrl
         : state.encodedUrl
-    rowPreview.replaceChildren(
-      fakeLink(t('exampleLeft'), 'L'),
-      liveLink(label, previewUrl),
-      fakeLink(t('exampleRight'), 'B'),
-    )
+    mocks.replaceChildren(bskyMock('light', label, previewUrl), bskyMock('dark', label, previewUrl))
     const showImage = Boolean(previewUrl)
     zoomPreview.hidden = !showImage
     previewEmpty.hidden = showImage
@@ -980,22 +978,39 @@ function imageErrorText(error: unknown): string {
   return t('imageError')
 }
 
-function fakeLink(label: string, letter: string): HTMLElement {
-  return el('figure', { className: 'preview-link' },
-    el('span', { className: 'fake-icon', attrs: { 'aria-hidden': 'true' }, text: letter }),
-    el('figcaption', { text: label }),
+function panel(title: MessageKey, id: string, ...body: Array<Node | null>): HTMLElement {
+  return el('section', { className: 'panel cast', attrs: { 'aria-labelledby': `${id}-title` } },
+    el('h2', { className: 'panel-h', attrs: { id: `${id}-title` }, text: t(title) }),
+    el('div', { className: 'panel-b stack' }, ...body),
   )
 }
 
-function liveLink(label: string, src: string | null): HTMLElement {
-  const icon = src
-    ? el('img', { className: 'link-icon', attrs: { src, alt: '', width: 40, height: 40 } })
-    : el('span', { className: 'link-icon placeholder', attrs: { 'aria-hidden': 'true' } })
-  return el('figure', { className: 'preview-link current' },
-    icon,
-    el('figcaption', {},
-      el('span', { className: 'marker', text: t('thisLink') }),
-      label ? el('span', { text: label }) : null,
+// The Bluesky app's profile-links row (social-app, features/profileLinks):
+// secondary pills of 14px medium type with a 16px favicon and an outbound
+// arrow. Both themes are drawn side by side so the icon is checked on each.
+function bskyMock(theme: 'light' | 'dark', label: string, iconSrc: string | null): HTMLElement {
+  const pill = (text: string, favicon: Node, current = false) =>
+    el('span', { className: current ? 'bsky-pill current' : 'bsky-pill' },
+      el('span', { className: 'bsky-slot' }, favicon),
+      el('span', { className: 'bsky-label', text }),
+      icon('arrow-up-right', 12),
+    )
+  const globe = () => icon('globe', 16)
+  const mine = iconSrc
+    ? el('img', { className: 'bsky-favicon', attrs: { src: iconSrc, alt: '', width: 16, height: 16 } })
+    : globe()
+  return el('figure', { className: `bsky bsky-${theme}`, attrs: { 'aria-label': t(theme === 'light' ? 'previewLight' : 'previewDark') } },
+    el('figcaption', { text: t(theme === 'light' ? 'previewLight' : 'previewDark') }),
+    el('div', { className: 'bsky-screen' },
+      el('div', { className: 'bsky-bio' },
+        el('span', { className: 'bsky-bar' }),
+        el('span', { className: 'bsky-bar' }),
+      ),
+      el('div', { className: 'bsky-row' },
+        pill(t('exampleLeft'), globe()),
+        pill(label || t('previewSample'), mine, true),
+        pill(t('exampleRight'), globe()),
+      ),
     ),
   )
 }

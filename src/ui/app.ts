@@ -19,7 +19,7 @@ import { controlId, renderLinks, type ConfirmRequest } from './links'
 import { fetchProfile, type PublicProfile } from './profile'
 import type { Shell } from './shell'
 
-type Mode = 'boot' | 'signed-out' | 'list' | 'editor' | 'demo'
+type Mode = 'boot' | 'signed-out' | 'list' | 'editor'
 
 export async function startApp(shell: Shell): Promise<void> {
   shell.setStatus(t('restoring'))
@@ -73,20 +73,19 @@ export async function startApp(shell: Shell): Promise<void> {
     const modeChanged = previousMode !== null && previousMode !== mode
     previousMode = mode
     shell.refresh()
-    shell.setBusy(busy && mode !== 'editor' && mode !== 'demo')
+    shell.setBusy(busy && mode !== 'editor')
 
     const active = document.activeElement
     const activeId = active instanceof HTMLElement && active.id && shell.main.contains(active) ? active.id : ''
 
     if (mode === 'boot') {
       shell.main.replaceChildren()
-    } else if ((mode === 'editor' || mode === 'demo') && editor) {
+    } else if (mode === 'editor' && editor) {
       renderEditor(shell.main, {
-        demo: mode === 'demo',
         state: editor,
-        shownCount: mode === 'demo' ? 0 : shown.length,
+        shownCount: shown.length,
         ...(editing ? { link: editing } : {}),
-        xrpc: mode === 'demo' ? null : xrpc,
+        xrpc,
         onBack: closeEditor,
         onSaved: () => {
           const rkey = editing?.rkey ?? editor?.savedRkey
@@ -154,7 +153,6 @@ export async function startApp(shell: Shell): Promise<void> {
         error,
         onSignIn: value => void signIn(value),
         onBsky: () => void signIn('https://bsky.social'),
-        onDemo: openDemo,
       })
     }
 
@@ -193,18 +191,6 @@ export async function startApp(shell: Shell): Promise<void> {
       }
     }
     document.getElementById('page-title')?.focus()
-  }
-
-  function openDemo(): void {
-    releaseCurrent()
-    editor = createEditorState()
-    editing = undefined
-    mode = 'demo'
-    status = ''
-    error = ''
-    repair = null
-    pendingFocus = 'link-url'
-    render()
   }
 
   function openEditor(link?: LinkView): void {

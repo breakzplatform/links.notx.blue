@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- Colours are the design system's ink-sky, paper and black tokens, inlined:
+  <!-- Colours are the design system's ink-brown, paper and black tokens, inlined:
        an SVG loaded as an image cannot read CSS custom properties. -->
-  <rect width="100" height="100" fill="#0095DA"/>
+  <rect width="100" height="100" fill="#8B5A2B"/>
   <!-- Card plus its hard shadow spans 18..82 before scaling. Scaled down around the
        centre so its corners stay inside the maskable safe zone and circular crops. -->
   <g transform="translate(50 50) scale(0.85) translate(-50 -50)">
