@@ -1,8 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import workerApp from '../worker/index'
-import proxyDefault, { proxyImage, validateProxyTarget } from '../worker/proxy'
+import imageProxyFunction, { config as imageProxyConfig } from '../netlify/functions/image-proxy'
+import proxyDefault, { validateProxyTarget } from '../server/proxy'
 
 describe('proxy: validateProxyTarget guards', () => {
   const selfHost = 'links.notx.blue'
@@ -671,8 +671,8 @@ describe('proxy: fetch handler with mocked global fetch', () => {
     })
   })
 
-  describe('worker routing integration (worker/index.ts)', () => {
-    it('routes /api/image-proxy to proxyImage and other paths to ASSETS', async () => {
+  describe('Netlify function (netlify/functions/image-proxy.ts)', () => {
+    it('serves the proxy through the shared guard logic', async () => {
       vi.stubGlobal(
         'fetch',
         vi.fn().mockResolvedValue(
@@ -683,97 +683,32 @@ describe('proxy: fetch handler with mocked global fetch', () => {
         ),
       )
 
-      const fakeAssets = {
-        fetch: vi.fn().mockResolvedValue(new Response('Static asset', { status: 200 })),
-      }
-
-      // Proxy route
-      const proxyReq = makeProxyRequest()
-      const proxyRes = await workerApp.fetch(proxyReq, { ASSETS: fakeAssets as unknown as Fetcher })
-      expect(proxyRes.status).toBe(200)
-
-      // Static assets route
-      const assetReq = new Request(`${origin}/index.html`)
-      const assetRes = await workerApp.fetch(assetReq, { ASSETS: fakeAssets as unknown as Fetcher })
-      expect(assetRes.status).toBe(200)
-      expect(fakeAssets.fetch).toHaveBeenCalledWith(assetReq)
-    })
-  })
-
-  describe('rate limiting (IMAGE_PROXY_LIMITER)', () => {
-    it('skips rate limiting when limiter is undefined', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue(
-          new Response(magicBody('image/png'), {
-            status: 200,
-            headers: { 'Content-Type': 'image/png' },
-          }),
-        ),
-      )
-
-      const req = makeProxyRequest()
-      const res = await proxyImage(req, fetch, undefined)
+      const res = await imageProxyFunction(makeProxyRequest())
       expect(res.status).toBe(200)
+      expect(res.headers.get('Content-Type')).toBe('image/png')
     })
 
-    it('returns 429 rate-limit-exceeded when limiter limit check fails', async () => {
-      const mockLimiter = {
-        limit: vi.fn().mockResolvedValue({ success: false }),
-      }
+    it('applies the same guards as the shared handler', async () => {
+      const res = await imageProxyFunction(makeProxyRequest(undefined, { headers: { 'sec-fetch-site': 'cross-site' } }))
+      expect(res.status).toBe(403)
+      expect(((await res.json()) as { error: string }).error).toBe('same-origin-required')
+    })
 
-      const req = makeProxyRequest(undefined, {
-        headers: { 'cf-connecting-ip': '198.51.100.22' },
+    it('is routed at /api/image-proxy with 30 requests per 60 s per IP', () => {
+      expect(imageProxyConfig).toEqual({
+        path: '/api/image-proxy',
+        rateLimit: {
+          windowLimit: 30,
+          windowSize: 60,
+          aggregateBy: ['ip', 'domain'],
+        },
       })
-      const res = await proxyImage(req, fetch, mockLimiter)
-
-      expect(res.status).toBe(429)
-      expect(((await res.json()) as { error: string }).error).toBe('rate-limit-exceeded')
-      expect(mockLimiter.limit).toHaveBeenCalledWith({ key: '198.51.100.22' })
-      expect(res.headers.get('Cache-Control')).toBe('no-store')
-    })
-
-    it('falls back to "unknown" key when cf-connecting-ip is absent and allows request on success', async () => {
-      const mockLimiter = {
-        limit: vi.fn().mockResolvedValue({ success: true }),
-      }
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue(
-          new Response(magicBody('image/png'), {
-            status: 200,
-            headers: { 'Content-Type': 'image/png' },
-          }),
-        ),
-      )
-
-      const req = makeProxyRequest()
-      const res = await proxyImage(req, fetch, mockLimiter)
-
-      expect(res.status).toBe(200)
-      expect(mockLimiter.limit).toHaveBeenCalledWith({ key: 'unknown' })
-    })
-
-    it('worker routing passes env.IMAGE_PROXY_LIMITER to proxyImage', async () => {
-      const mockLimiter = {
-        limit: vi.fn().mockResolvedValue({ success: false }),
-      }
-      const fakeAssets = { fetch: vi.fn() }
-
-      const req = makeProxyRequest()
-      const res = await workerApp.fetch(req, {
-        ASSETS: fakeAssets as unknown as Fetcher,
-        IMAGE_PROXY_LIMITER: mockLimiter as unknown as RateLimit,
-      })
-
-      expect(res.status).toBe(429)
-      expect(mockLimiter.limit).toHaveBeenCalled()
     })
   })
 
   describe('dependency constraints', () => {
-    it('asserts worker/proxy.ts does not import src/lib/rules', () => {
-      const proxyFilePath = path.resolve(__dirname, '../worker/proxy.ts')
+    it('asserts server/proxy.ts does not import src/lib/rules', () => {
+      const proxyFilePath = path.resolve(__dirname, '../server/proxy.ts')
       const content = fs.readFileSync(proxyFilePath, 'utf-8')
       const lines = content.split('\n')
       const importLines = lines.filter(line => /^\s*import\b/.test(line))

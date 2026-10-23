@@ -1,60 +1,75 @@
 # links.notx.blue
 
-Ícones personalizados para os links de perfil do Bluesky, sem backend.
+Custom icons for Bluesky profile links, with no backend of its own.
 
-O Bluesky lançou links de perfil em 22/10/2026. Cada link é um registro
-`app.bsky.actor.link` no repositório da pessoa, com um ícone (blob) que o app
-oficial preenche com o favicon do site. Qualquer cliente pode gravar esse
-registro com outro blob, e o AppView serve o blob como está. Este site faz
-isso: você entra com o Bluesky (OAuth no navegador), escolhe o ícone que quiser
-e o link continua apontando direto para o destino real. Sem redirecionador.
+Bluesky launched profile links on 2026-10-22. Each link is an
+`app.bsky.actor.link` record in the user's repo, with an icon (a blob) that
+the official app fills with the site's favicon. Any client can write that
+record with a different blob, and the AppView serves the blob as is. This site
+does exactly that: you sign in with Bluesky (OAuth in the browser), pick any
+icon, and the link still points straight at the real destination. No
+redirector.
 
-## Como funciona
+## How it works
 
-- Site estático (Vite + TypeScript, sem framework) servido por um Cloudflare
-  Worker com static assets em `https://links.notx.blue`.
-- OAuth com `@atproto/oauth-client-browser` (cliente público, DPoP, PKCE). Os
-  tokens ficam no IndexedDB do navegador. O client metadata está em
+- Static site (Vite + TypeScript, no framework) hosted on Netlify at
+  `https://links.notx.blue`, styled with the joseli.to design system
+  (`src/ds/`, Computer Modern served from `static.joseli.to`).
+- OAuth with `@atproto/oauth-client-browser` (public client, DPoP, PKCE).
+  Tokens stay in the browser's IndexedDB. The client metadata lives at
   `/client-metadata.json`.
-- Escopo pedido: `atproto repo:app.bsky.actor.link repo:app.bsky.actor.profile blob:image/*`.
-  É mais estreito que o permission set `app.bsky.authManageProfile` (que também
-  libera status e declaração de notificações). As leituras usam endpoints
-  públicos, sem escopo `rpc:`.
-- Salvar: `uploadBlob` → `putRecord` do link (rkey TID se for novo) → `putRecord`
-  do perfil com `swapRecord` (CID). Só o campo `links` do perfil muda; o resto
-  volta byte a byte. Se outro cliente editar o perfil no meio, a operação é
-  refeita sobre o registro novo (até 3 tentativas).
-- Validação igual à do Bluesky (`social-app` e AppView): só https, sem
-  encurtadores, sem domínios bloqueados, título até 40 grafemas / 320 bytes,
-  ícone PNG/JPEG/WebP até 100 000 bytes, no máximo 10 links.
-- Fontes de ícone: arquivo, URL de imagem, favicon do site (cardyb) ou preset
-  (letra/emoji num círculo colorido). Recorte quadrado e codificação no
-  `<canvas>` (256 px, caindo para 192/128 se precisar caber no limite).
-- O único código de servidor é `/api/image-proxy`: um proxy de imagem sem
-  estado, só https, com proteção contra SSRF, limite de 2 MB, só tipos de
-  imagem, sem log e sem armazenamento. Só aceita chamadas do próprio site.
+- Requested scope: `atproto repo:app.bsky.actor.link
+  repo:app.bsky.actor.profile?action=create&action=update
+  blob?accept=image/png&accept=image/jpeg&accept=image/webp`. It is narrower
+  than the `app.bsky.authManageProfile` permission set (which also grants
+  status and notification declaration writes). Reads use public endpoints, so
+  no `rpc:` scope is needed.
+- Saving: `uploadBlob` → `putRecord` for the link (TID rkey when new) →
+  `putRecord` for the profile with `swapRecord` (CID). Only the profile's
+  `links` field changes; everything else round-trips byte for byte. If another
+  client edits the profile in between, the operation is redone on the new
+  record (up to 3 attempts).
+- Validation matches Bluesky (`social-app` and the AppView): https only, no
+  shorteners, no blocked domains, title up to 40 graphemes / 320 bytes, icon
+  PNG/JPEG/WebP up to 100,000 bytes, at most 10 links.
+- Icon sources: file, image URL, the site's favicon (cardyb) or a preset
+  (letter/emoji on a coloured circle). Square crop and encoding happen in a
+  `<canvas>` (256 px, dropping to 192/128 when needed to fit the limit).
+- The only server code is `/api/image-proxy`, a Netlify Function
+  (`netlify/functions/image-proxy.ts`) around the shared handler in
+  `server/proxy.ts`: a stateless image proxy, https only, with SSRF guards
+  (no IP literals, private ranges, odd ports or credentials), a 2 MB cap,
+  image types only (checked against magic bytes), no logging and no storage.
+  It only answers same-origin requests, and Netlify rate-limits it to 30
+  requests per 60 s per client IP (`config.rateLimit`).
 
-## Desenvolvimento
+## Development
 
 ```sh
 npm install
-npm run dev        # http://127.0.0.1:5173 (cliente OAuth loopback)
+npm run dev        # http://127.0.0.1:5173 (loopback OAuth client)
 npm test           # vitest
 npm run typecheck
 npm run build
 ```
 
-Use `127.0.0.1`, não `localhost`: o redirect do cliente loopback aponta para ele.
+Use `127.0.0.1`, not `localhost`: the loopback client's redirect points there.
 
 ## Deploy
 
+Netlify site `links-notx-blue`, configured in `netlify.toml` (build command,
+publish directory, functions, security headers and CSP). `dist/404.html` is
+the not-found page and `dist/privacy.html` is served at `/privacy`.
+
+Pushes to `main` deploy automatically. To deploy by hand:
+
 ```sh
-CLOUDFLARE_API_TOKEN=... npm run deploy
+NETLIFY_AUTH_TOKEN=... NETLIFY_SITE_ID=... npm run deploy
 ```
 
-Worker `links-notx-blue`, domínio próprio `links.notx.blue` (zona `notx.blue`,
-plano Free). Sem KV, D1 ou R2.
+DNS: `links` is a DNS-only (unproxied) CNAME to `links-notx-blue.netlify.app`
+on the `notx.blue` zone; Netlify issues the Let's Encrypt certificate.
 
-## Contato
+## Contact
 
-Abuso: abuse@joseli.to. Política de privacidade em `/privacy`.
+Abuse: abuse@joseli.to. Privacy policy at `/privacy`.

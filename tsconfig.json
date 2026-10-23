@@ -13,5 +13,5 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "worker", "test", "vite.config.ts", "vitest.config.ts"]
+  "include": ["src", "server", "netlify", "test", "vite.config.ts", "vitest.config.ts"]
 }

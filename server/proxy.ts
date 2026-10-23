@@ -37,9 +37,8 @@ function matchesImageType(body: Uint8Array, mime: string): boolean {
     default: return false
   }
 }
-export async function proxyImage(request: Request, fetchImpl: typeof fetch = fetch,
-  limiter?: { limit(options: { key: string }): Promise<{ success: boolean }> },
-): Promise<Response> {
+// Rate limiting happens before this runs, in the function config.
+export async function proxyImage(request: Request, fetchImpl: typeof fetch = fetch): Promise<Response> {
   if (request.method !== 'GET') {
     const response = errorResponse(405, 'method-not-allowed')
     response.headers.set('Allow', 'GET')
@@ -48,7 +47,6 @@ export async function proxyImage(request: Request, fetchImpl: typeof fetch = fet
   const destination = request.headers.get('sec-fetch-dest')
   if (destination !== null && destination !== 'empty' && destination !== 'image') return errorResponse(403, 'fetch-destination-not-allowed')
   if (!isSameOrigin(request)) return errorResponse(403, 'same-origin-required')
-  if (limiter && !(await limiter.limit({ key: request.headers.get('cf-connecting-ip') ?? 'unknown' })).success) return errorResponse(429, 'rate-limit-exceeded')
   const requestUrl = new URL(request.url)
   const input = requestUrl.searchParams.get('url')
   if (!input) return errorResponse(400, 'missing-url')
