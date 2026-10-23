@@ -1,3 +1,7 @@
+# Vite builds the static site into dist/; Netlify publishes that directory and
+# never sees the sources. The Tailwind CSS is compiled ahead of time and
+# committed (scripts/build-css.sh), so the build only bundles it: no Tailwind
+# run, no design-system files and no scripts/ reach the CDN.
 [build]
   command = "npm run build"
   publish = "dist"
@@ -5,12 +9,19 @@
 [build.environment]
   NODE_VERSION = "24"
 
+# The only server code: the stateless image proxy at /api/image-proxy. Its
+# route and rate limit live in the function's own `config` export.
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
-# Netlify serves dist/404.html for unknown paths and dist/privacy.html at /privacy.
+# No redirects needed: Netlify serves dist/404.html for unknown paths and,
+# with pretty URLs, dist/privacy.html at /privacy.
 
+# The CSP allows only this origin for scripts and styles (Vite emits no inline
+# code; theme-boot.js is a file for that reason). Images and connections are
+# open to https because link icons, favicons (cardyb) and each user's PDS live
+# on arbitrary hosts. Fonts come from the design system's asset host.
 [[headers]]
   for = "/*"
   [headers.values]
@@ -20,6 +31,8 @@
     X-Content-Type-Options = "nosniff"
     Permissions-Policy = "accelerometer=(), camera=(), geolocation=(), gyroscope=(), microphone=(), payment=(), usb=()"
 
+# Vite puts a content hash in every file name under /assets/, so a changed
+# file always gets a new URL and these can be cached forever.
 [[headers]]
   for = "/assets/*"
   [headers.values]
