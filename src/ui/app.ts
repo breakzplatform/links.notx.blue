@@ -14,7 +14,7 @@ import { subscribeLocale, t } from '../i18n'
 import { createAuth, isCancelledSignIn, isInvalidScope, normalizeSignInInput, type Auth } from '../oauth'
 import { friendlyError, invalidLinkText } from './errors'
 import { createEditorState, releaseEditor, renderEditor, type EditorState } from './editor'
-import { renderLanding, renderPromo } from './landing'
+import { renderLanding } from './landing'
 import { controlId, renderLinks, type ConfirmRequest } from './links'
 import { fetchProfile, type PublicProfile } from './profile'
 import { renderLinksSkeleton } from './skeleton'
@@ -143,7 +143,6 @@ export async function startApp(shell: Shell): Promise<void> {
           openEditor(link)
         },
       })
-      if (!shell.main.querySelector('.db-callout-promo')) shell.main.firstElementChild?.append(renderPromo())
     } else {
       renderLanding(shell.main, {
         status,
@@ -154,10 +153,6 @@ export async function startApp(shell: Shell): Promise<void> {
       })
     }
 
-    if (busy) {
-      const empty = shell.main.querySelector<HTMLElement>('.empty')
-      if (empty) empty.hidden = true
-    }
     painting = false
     shell.setStatus(status)
 

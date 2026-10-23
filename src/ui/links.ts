@@ -3,6 +3,7 @@ import type { LinkView } from '../lib/profile-links'
 import { t } from '../i18n'
 import { el } from './dom'
 import { renderFaq } from './faq'
+import { renderPromo } from './landing'
 import { icon } from './icons'
 import type { PublicProfile } from './profile'
 
@@ -55,7 +56,7 @@ export function renderLinks(
   if (atLimit) add.setAttribute('aria-describedby', 'link-limit')
 
   const shown = options.shown.length === 0
-    ? el('p', { className: 'empty', text: t('linksEmpty') })
+    ? options.busy ? null : el('p', { className: 'empty', text: t('linksEmpty') })
     : el('ol', { className: 'links' }, ...options.shown.map((link, index) => row(link, {
       busy: options.busy,
       confirm: options.confirm,
@@ -105,6 +106,7 @@ export function renderLinks(
       ),
       hidden,
       renderFaq(),
+      renderPromo(),
     ),
   )
 }
