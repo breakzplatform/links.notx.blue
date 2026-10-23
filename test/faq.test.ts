@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { getLocale, initLocale, setLocale, t } from '../src/i18n'
 import { ABUSE_CONTACT } from '../src/lib/config'
-import { SHORTENER_DOMAINS, BLOCKED_DOMAINS, ICON_MAX_BYTES } from '../src/lib/rules'
+import { getSupportProvider, ICON_MAX_BYTES, isShortenerLink, SHORTENER_DOMAINS, SUPPORT_PROVIDERS } from '../src/lib/rules'
 import { FAQ_ITEMS, renderFaq } from '../src/ui/faq'
 
 describe('FAQ', () => {
@@ -28,10 +28,30 @@ describe('FAQ', () => {
     setLocale('en')
     const answer = t('faqRejectedA')
     expect(SHORTENER_DOMAINS).toContain('bit.ly')
-    expect(BLOCKED_DOMAINS).toContain('onlyfans.com')
+    expect(isShortenerLink('https://videy.at/v/abc')).toBe(true)
     expect(answer).toContain('bit.ly')
-    expect(answer).toContain('onlyfans.com')
+    expect(answer).toContain('videy.at')
     expect(answer).toContain('https')
+  })
+
+  it('says the checks do not follow redirects, and does not call the blocklist unbeatable', () => {
+    for (const locale of ['en', 'pt-BR'] as const) {
+      setLocale(locale)
+      expect(t('faqRejectedA')).toMatch(/redirect|redirecion/)
+      expect(t('faqRejectedA')).not.toMatch(/cannot be worked around|Não há como contornar/)
+    }
+  })
+
+  it('explains green links with providers that the rules really recognize', () => {
+    setLocale('en')
+    const answer = t('faqGreenA')
+    for (const name of ['Patreon', 'Ko-fi', 'Buy Me a Coffee', 'GoFundMe', 'Open Collective', 'Liberapay', 'Substack', 'itch.io', 'Etsy', 'Kickstarter']) {
+      expect(answer).toContain(name)
+      expect(SUPPORT_PROVIDERS.some(provider => provider.name === name)).toBe(true)
+    }
+    expect(getSupportProvider('https://ko-fi.com/joselito')?.name).toBe('Ko-fi')
+    expect(getSupportProvider('https://ko-fi.com')).toBeUndefined()
+    expect(getSupportProvider('https://fanbox.cc/@kat')?.name).toBe('pixivFANBOX')
   })
 
   it('states the real icon size limit', () => {

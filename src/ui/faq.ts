@@ -6,6 +6,7 @@ export const FAQ_ITEMS: ReadonlyArray<readonly [question: MessageKey, answer: Me
   ['faqClientsQ', 'faqClientsA'],
   ['faqRemoveQ', 'faqRemoveA'],
   ['faqRejectedQ', 'faqRejectedA'],
+  ['faqGreenQ', 'faqGreenA'],
   ['faqPasswordQ', 'faqPasswordA'],
   ['faqImageQ', 'faqImageA'],
 ]

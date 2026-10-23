@@ -1,8 +1,11 @@
-// Source: social-app/src/features/profileLinks/providers.ts and lib/strings/url-helpers.ts (2026-10-22).
+// Source: social-app/src/features/profileLinks/providers.ts and lib/strings/url-helpers.ts (2026-10-23).
 // SHORTENER_DOMAINS includes the union with atproto/packages/bsky/src/views/profile-link-rules.ts.
+// There is no hostname blocklist: social-app moved its blocked hosts into the shortener list on 2026-10-23.
 export type SupportProviderLogoName =
+  | 'BackerKit'
   | 'BigCartel'
   | 'Boosty'
+  | 'Booth'
   | 'BuyMeACoffee'
   | 'CashApp'
   | 'Chuffed'
@@ -11,6 +14,7 @@ export type SupportProviderLogoName =
   | 'Etsy'
   | 'Fourthwall'
   | 'Givebutter'
+  | 'GiveSendGo'
   | 'GoFundMe'
   | 'Gumroad'
   | 'Indiegogo'
@@ -23,7 +27,9 @@ export type SupportProviderLogoName =
   | 'OpenCollective'
   | 'Patreon'
   | 'PayPal'
+  | 'PixivFanbox'
   | 'Redbubble'
+  | 'Skeb'
   | 'Stripe'
   | 'Substack'
   | 'Throne'
@@ -39,8 +45,10 @@ export type SupportProvider = {
 }
 
 export const SUPPORT_PROVIDERS: SupportProvider[] = [
+  {name: 'BackerKit', logo: 'BackerKit', domain: 'backerkit.com'},
   {name: 'Big Cartel', logo: 'BigCartel', domain: 'bigcartel.com'},
   {name: 'Boosty', logo: 'Boosty', domain: 'boosty.to'},
+  {name: 'BOOTH', logo: 'Booth', domain: 'booth.pm'},
   {name: 'Buy Me a Coffee', logo: 'BuyMeACoffee', domain: 'buymeacoffee.com'},
   {name: 'Cash App', logo: 'CashApp', domain: 'cash.app'},
   {
@@ -60,6 +68,7 @@ export const SUPPORT_PROVIDERS: SupportProvider[] = [
   {name: 'Etsy', logo: 'Etsy', domain: 'etsy.com'},
   {name: 'Fourthwall', logo: 'Fourthwall', domain: 'fourthwall.com'},
   {name: 'Givebutter', logo: 'Givebutter', domain: 'givebutter.com'},
+  {name: 'GiveSendGo', logo: 'GiveSendGo', domain: 'givesendgo.com'},
   {name: 'GoFundMe', logo: 'GoFundMe', domain: 'gofundme.com'},
   {name: 'Gumroad', logo: 'Gumroad', domain: 'gumroad.com'},
   {name: 'Indiegogo', logo: 'Indiegogo', domain: 'indiegogo.com'},
@@ -87,7 +96,9 @@ export const SUPPORT_PROVIDERS: SupportProvider[] = [
     pathPrefix: '/paypalme/',
   },
   {name: 'PayPal', logo: 'PayPal', domain: 'paypal.me'},
+  {name: 'pixivFANBOX', logo: 'PixivFanbox', domain: 'fanbox.cc'},
   {name: 'Redbubble', logo: 'Redbubble', domain: 'redbubble.com'},
+  {name: 'Skeb', logo: 'Skeb', domain: 'skeb.jp'},
   {name: 'Stripe', logo: 'Stripe', domain: 'buy.stripe.com'},
   {name: 'Stripe', logo: 'Stripe', domain: 'donate.stripe.com'},
   {name: 'Substack', logo: 'Substack', domain: 'substack.com'},
@@ -101,19 +112,8 @@ export function normalizeProfileLinkUrl(input: string): string | null {
   return definitelyUrl(input.trim())
 }
 
-export const BLOCKED_DOMAINS = [
-  'aceimg.in',
-  'fansly.com',
-  'onlyfans.com',
-  'onlylinks.cc',
-  'slicedrve.in',
-  'vdey.in',
-  'videy.at',
-  'videy.lt',
-  'videy.my',
-]
-
 const SOCIAL_APP_SHORTENER_DOMAINS = [
+  'aceimg.in',
   'acel.me',
   'adf.ly',
   'bit.ly',
@@ -131,6 +131,7 @@ const SOCIAL_APP_SHORTENER_DOMAINS = [
   'lnk.ua',
   'lnkd.in',
   'n9.cl',
+  'onlylinks.cc',
   'ow.ly',
   'psee.io',
   'rb.gy',
@@ -150,6 +151,7 @@ const SOCIAL_APP_SHORTENER_DOMAINS = [
   'shorturl.at',
   'shorturl.lt',
   'shorturl.ly',
+  'slicedrve.in',
   'slnt.to',
   'smarturl.lt',
   'smarturl.my',
@@ -161,6 +163,10 @@ const SOCIAL_APP_SHORTENER_DOMAINS = [
   'tinyurl.com',
   'urlr.me',
   'v.gd',
+  'vdey.in',
+  'videy.at',
+  'videy.lt',
+  'videy.my',
   'x.gd',
   'zig.ht',
 ]
@@ -229,13 +235,6 @@ export function getSupportProvider(url: string): SupportProvider | undefined {
   )
 }
 
-export function isBlockedProfileLink(url: string): boolean {
-  const parsed = parseWebUrl(url)
-  if (!parsed) return false
-  const host = parsed.hostname.toLowerCase()
-  return BLOCKED_DOMAINS.some(domain => hostMatchesDomain(host, domain))
-}
-
 export function isInsecureLink(url: string): boolean {
   return parseWebUrl(url)?.protocol === 'http:'
 }
@@ -290,7 +289,7 @@ export const TITLE_MAX_GRAPHEMES = 40
 export const TITLE_MAX_BYTES = 320
 export const ICON_MAX_BYTES = 100_000
 export const ICON_MIME = ['image/png', 'image/jpeg', 'image/webp']
-export type LinkIssue = 'empty' | 'invalid' | 'insecure' | 'blocked' | 'shortener' | 'too-many'
+export type LinkIssue = 'empty' | 'invalid' | 'insecure' | 'shortener' | 'too-many'
 
 export function validateLink(input: string, opts: { existingCount: number; editing: boolean }): {
   url: string | null; issues: LinkIssue[]; provider?: SupportProvider
@@ -301,7 +300,6 @@ export function validateLink(input: string, opts: { existingCount: number; editi
   if (!trimmed) issues.push('empty')
   else if (!url) issues.push('invalid')
   if (/^http:/i.test(trimmed) || (url && isInsecureLink(url))) issues.push('insecure')
-  if (url && isBlockedProfileLink(url)) issues.push('blocked')
   if (url && isShortenerLink(url)) issues.push('shortener')
   if (!opts.editing && opts.existingCount >= MAX_PROFILE_LINKS) issues.push('too-many')
   return { url: issues.length ? null : url, issues, ...(!issues.length && url ? { provider: getSupportProvider(url) } : {}) }

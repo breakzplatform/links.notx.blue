@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  BLOCKED_DOMAINS,
   formatLinkUrl,
   getLinkHost,
   getSupportProvider,
@@ -8,7 +7,6 @@ import {
   hostMatchesDomain,
   ICON_MAX_BYTES,
   ICON_MIME,
-  isBlockedProfileLink,
   isInsecureLink,
   isShortenerLink,
   MAX_PROFILE_LINKS,
@@ -86,12 +84,16 @@ describe('rules: hostMatchesDomain and domain checks', () => {
     expect(isShortenerLink('https://example.com/bit.ly')).toBe(false)
   })
 
-  it('identifies blocked domains and subdomains vs lookalikes', () => {
-    expect(isBlockedProfileLink('https://fansly.com/user')).toBe(true)
-    expect(isBlockedProfileLink('https://sub.onlyfans.com/user')).toBe(true)
-    expect(isBlockedProfileLink('https://videy.at/v?id=123')).toBe(true)
-    expect(isBlockedProfileLink('https://notfansly.com/user')).toBe(false)
-    expect(isBlockedProfileLink('https://onlyfans.com.fake.org/user')).toBe(false)
+  it('treats the former blocked hosts as shorteners, subdomains included', () => {
+    expect(isShortenerLink('https://videy.at/v?id=123')).toBe(true)
+    expect(isShortenerLink('https://sub.onlylinks.cc/user')).toBe(true)
+    expect(isShortenerLink('https://notvidey.at/v')).toBe(false)
+  })
+
+  it('has no hostname blocklist: adult platforms validate like any site', () => {
+    const res = validateLink('https://onlyfans.com/kat', { existingCount: 0, editing: false })
+    expect(res.issues).toEqual([])
+    expect(res.url).toBe('https://onlyfans.com/kat')
   })
 
   it('detects insecure http links', () => {
@@ -246,12 +248,6 @@ describe('rules: validateLink', () => {
   it('detects insecure http URLs', () => {
     const res = validateLink('http://example.com', { existingCount: 0, editing: false })
     expect(res.issues).toContain('insecure')
-    expect(res.url).toBeNull()
-  })
-
-  it('detects blocked domains', () => {
-    const res = validateLink('https://fansly.com/user', { existingCount: 0, editing: false })
-    expect(res.issues).toContain('blocked')
     expect(res.url).toBeNull()
   })
 
