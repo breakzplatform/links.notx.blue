@@ -5,7 +5,10 @@ export function firstGrapheme(s: string): string {
 }
 export function detectPresetKind(text: string): 'letter' | 'emoji' {
   const grapheme = firstGrapheme(text)
-  return /[\p{Extended_Pictographic}\p{Emoji_Presentation}]|^[#*0-9]\uFE0F?\u20E3$/u.test(grapheme) ? 'emoji' : 'letter'
+  // Extended_Pictographic alone also covers text symbols such as © and ™, which
+  // are drawn as letters unless the grapheme asks for emoji presentation.
+  const isEmoji = /\p{Emoji_Presentation}|\p{Extended_Pictographic}[\uFE0F\u200D\u{1F3FB}-\u{1F3FF}]|^[#*0-9]\uFE0F?\u20E3$/u.test(grapheme)
+  return isEmoji ? 'emoji' : 'letter'
 }
 export function presetForeground(bg: string): string {
   if (!/^#[\da-f]{6}$/i.test(bg)) throw new Error('Expected a six-digit hex color')

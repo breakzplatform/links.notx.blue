@@ -88,7 +88,7 @@ export function renderLanding(
         el('p', { className: 'signin-atmosphere' }, el('strong', { text: t('signInAtmosphere') })),
         el('div', { className: 'signin-choices' }, bsky, other),
         form,
-        el('p', { className: 'db-note signin-status', attrs: { 'aria-live': 'polite', 'aria-atomic': 'true' }, text: options.status ?? '' }),
+        el('p', { className: 'db-note signin-status', text: options.status ?? '' }),
         error,
       ),
     ),

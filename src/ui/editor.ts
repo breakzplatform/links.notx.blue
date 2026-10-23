@@ -369,11 +369,11 @@ export function renderEditor(
   })
 
   const form = el('form', { className: 'stack' },
-    el('section', { className: 'db-panel cast', attrs: { 'aria-labelledby': 'page-title' } },
+    el('section', { className: 'db-panel cast', attrs: { 'aria-labelledby': 'editor-title' } },
       el('h1', {
         className: 'db-panel-head editor-head',
         attrs: { id: 'page-title', tabindex: '-1' },
-      }, back, el('span', { className: 'editor-title', text: editing ? t('editorEdit') : t('editorNew') }), panelStatus),
+      }, back, el('span', { className: 'editor-title', attrs: { id: 'editor-title' }, text: editing ? t('editorEdit') : t('editorNew') }), panelStatus),
       el('div', { className: 'panel-b stack' },
         el('div', { className: 'field-block' },
           el('label', { className: 'label', attrs: { for: 'link-url' }, text: t('urlLabel') }),
