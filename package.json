@@ -15,7 +15,6 @@
     "@atproto/oauth-client-browser": "^0.5.10"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20261023.1",
     "happy-dom": "^21.0.4",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
