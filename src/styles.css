@@ -64,6 +64,9 @@ h1[tabindex="-1"]:focus { outline: none; }
    size follows the viewport more tightly to keep it on one line on a phone. */
 .db-wordmark { font-size: min(116px, 11.4vw); }
 .db-wordmark a, .db-wordmark a:visited, .db-wordmark a:hover { color: inherit; background: transparent; text-decoration: none; }
+/* Same gap under the wordmark as the landing panel, whose 64px margin
+   collapses with the wordmark's 24px one: only the difference is added. */
+.signed-in { padding-top: calc(var(--space-12) - var(--space-6)); }
 .db-wordmark a:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 4px; }
 
 /* Meta lines, tags and labels: typewriter, uppercase, tracked out. */

@@ -70,6 +70,8 @@ export async function startApp(shell: Shell): Promise<void> {
     shell.refresh()
     shell.setBusy(busy && mode !== 'editor')
 
+    shell.main.classList.toggle('signed-in', mode !== 'signed-out')
+
     const active = document.activeElement
     const activeId = active instanceof HTMLElement && active.id && shell.main.contains(active) ? active.id : ''
 
