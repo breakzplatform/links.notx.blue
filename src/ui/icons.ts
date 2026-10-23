@@ -11,6 +11,8 @@ export type IconName = keyof typeof PATHS
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
 
+const CIRCLE_RADIUS = { sun: '4', globe: '10' } as const
+
 export function icon(name: IconName, size = 13): SVGSVGElement {
   const svg = document.createElementNS(SVG_NS, 'svg')
   for (const [key, value] of Object.entries({
@@ -26,11 +28,12 @@ export function icon(name: IconName, size = 13): SVGSVGElement {
     'aria-hidden': 'true',
     focusable: 'false',
   })) svg.setAttribute(key, value)
-  if (name === 'sun' || name === 'globe') {
+  const radius = CIRCLE_RADIUS[name as keyof typeof CIRCLE_RADIUS]
+  if (radius) {
     const circle = document.createElementNS(SVG_NS, 'circle')
     circle.setAttribute('cx', '12')
     circle.setAttribute('cy', '12')
-    circle.setAttribute('r', name === 'sun' ? '4' : '10')
+    circle.setAttribute('r', radius)
     svg.append(circle)
   }
   for (const d of PATHS[name]) {
