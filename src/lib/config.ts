@@ -1,5 +1,4 @@
 export const SITE_ORIGIN = 'https://links.notx.blue'
-export const CLIENT_ID = `${SITE_ORIGIN}/client-metadata.json`
 export const REDIRECT_URI = `${SITE_ORIGIN}/`
 export const DEV_REDIRECT_URI = 'http://127.0.0.1:5173/'
 export const HANDLE_RESOLVER = 'https://bsky.social'

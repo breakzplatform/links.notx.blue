@@ -8,7 +8,6 @@
   --target: 44px;
 }
 
-h1, h2, p { margin: 0; }
 h2 { font-size: var(--text-display-4); line-height: 1.15; }
 
 /* Headings take focus only programmatically, after a view change, so screen
@@ -41,99 +40,111 @@ h1[tabindex="-1"]:focus { outline: none; }
 }
 .skip:focus { transform: none; }
 
-.wrap {
-  max-width: calc(720px + 2 * var(--page-pad-x));
-  margin-inline: auto;
-  padding: var(--space-6) var(--page-pad-x) var(--page-pad-bottom);
-}
-
 .stack { display: flex; flex-direction: column; gap: var(--space-6); }
 .stack > * { min-width: 0; }
 
-/* The wordmark: CMU Serif bold, "links" on an ink block tilted like a sticker
-   (.ink-block.tilt) and ".notx.blue" as plain type. It runs past the top of
-   the type scale on purpose: the masthead is the only display type the site
-   has, and it has to fit 15 characters on a phone. */
-.wordmark-link {
-  display: block;
+/* Pieces shared with the sibling sites (down.blue, handles.notx.blue): masthead
+   wordmark, meta and note type, panel, buttons, input field, callout and
+   support chips. Copied from down.blue/index.html, not re-created; keep them
+   in step with it. */
+
+/* The wordmark: the name in CMU Serif bold, the suffix an ink block tilted
+   +1.5deg like a sticker (.ink-block.tilt-cw). It runs past the top of the
+   type scale on purpose: this is a one-page tool and the masthead is the
+   only display type it has. */
+.db-wordmark {
   margin: var(--space-10) 0 var(--space-6);
-  font: var(--weight-display) clamp(32px, 10vw, 76px)/1.1 var(--font-display);
+  font: var(--weight-display) clamp(var(--text-display-1), 13vw, 116px)/1.1 var(--font-display);
   letter-spacing: var(--tracking-display);
   color: var(--text-1);
   text-align: center;
-  text-decoration: none;
   white-space: nowrap;
 }
-.wordmark-link:visited, .wordmark-link:hover, .wordmark-link:active {
-  color: var(--text-1);
-  background: transparent;
-  text-decoration: none;
-}
-.wordmark-link:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 4px; }
+/* The one deviation from down.blue: this name is 15 characters, not 9, so the
+   size follows the viewport more tightly to keep it on one line on a phone. */
+.db-wordmark { font-size: min(116px, 11.4vw); }
+.db-wordmark a, .db-wordmark a:visited, .db-wordmark a:hover { color: inherit; background: transparent; text-decoration: none; }
+.db-wordmark a:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 4px; }
 
-/* Meta lines: typewriter, uppercase, tracked out. */
-.meta-line {
-  font: var(--type-meta);
-  letter-spacing: var(--tracking-meta);
-  text-transform: uppercase;
-  color: var(--text-3);
-}
+/* Meta lines, tags and labels: typewriter, uppercase, tracked out. */
+.db-meta { font: var(--type-meta); text-transform: uppercase; letter-spacing: var(--tracking-meta); color: var(--text-3); }
+.db-micro { font: var(--type-label); text-transform: uppercase; letter-spacing: var(--tracking-meta); }
+/* Running machine output and fine print: typewriter, but readable. */
+.db-note { font: var(--type-code); color: var(--text-3); }
 
-.toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-height: var(--target);
-}
 
-.masthead { margin-bottom: var(--space-8); }
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-3);
+/* Every box title — panel head, callout spine — is the same object: an ink
+   block in typewriter caps. The panel itself carries .cast. */
+.db-panel { background: var(--surface-card); }
+.db-panel-head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  margin: 0; padding: var(--box-head-pad); border-bottom: var(--border);
+  background: var(--project-ink); color: var(--project-ink-contrast);
+  font: var(--weight-bold) var(--text-caption)/1.3 var(--font-mono);
+  letter-spacing: var(--tracking-meta); text-transform: uppercase;
 }
 
-/* Footer, as on down.blue: meta line, fine print, then the support chips. */
-.site-foot {
-  margin-top: var(--space-11);
-  padding-top: var(--space-6);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-6);
-  text-align: center;
+
+/* Buttons carry only their type and colour; .cast.press in the markup does
+   the halftone shadow, the lift on hover and the slam on press. */
+.db-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-3);
+  background: var(--surface-page); color: var(--text-1);
+  font: var(--weight-bold) var(--text-body-sm)/1.25 var(--font-body);
+  padding: 8px 12px; cursor: pointer; text-align: center; text-decoration: none;
 }
-.site-foot p { max-width: 62ch; }
-.site-foot .meta-line a { text-transform: none; }
-.note-line { font: var(--type-code); color: var(--text-3); }
-.support {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
+a.db-btn, a.db-btn:visited, a.db-btn:hover { color: var(--text-1); background: var(--surface-page); text-decoration: none; }
+.db-btn-primary, a.db-btn-primary, a.db-btn-primary:visited, a.db-btn-primary:hover {
+  background: var(--project-ink); border-color: var(--project-ink); color: var(--project-ink-contrast);
 }
-.micro {
-  margin-right: var(--space-2);
-  color: var(--text-3);
-  font: var(--type-label);
-  letter-spacing: var(--tracking-meta);
-  text-transform: uppercase;
+.db-btn-danger { background: var(--ink-red); border-color: var(--ink-red); color: var(--on-red); }
+/* Disabled: no travel, no shadow (.press handles both), a sunken fill and
+   the second text colour. Never an opacity fade. */
+.db-btn:disabled, .db-btn-primary:disabled, .db-btn-danger:disabled {
+  background: var(--surface-sunken); border-color: var(--border-strong); color: var(--text-2); cursor: not-allowed;
 }
-.chip-link, .chip-link:visited, .chip-link:hover {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--target);
-  padding: 5px 9px;
-  font: var(--type-label);
-  letter-spacing: var(--tracking-meta);
-  text-transform: uppercase;
-  text-decoration: none;
+.db-btn-sm { padding: 4px 7px; font-size: var(--text-meta); }
+
+
+
+/* An <input> cannot carry the ::before/::after the halftone needs, so the
+   casting box is a wrapper and the input inside it is bare. Focus lands on
+   the wrapper, where the outline can sit outside the border. */
+.db-field { display: flex; min-width: 0; background: var(--surface-page); }
+.db-field:focus-within { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.db-input {
+  width: 100%; min-width: 0; border: 0; margin: 0; background: transparent; color: var(--text-1);
+  font: var(--type-compact); padding: 8px 10px;
 }
-a.chip-pix, a.chip-pix:visited, a.chip-pix:hover { background: var(--ink-pix); color: var(--on-pix); }
-a.chip-coffee, a.chip-coffee:visited, a.chip-coffee:hover { background: var(--ink-yellow); color: var(--on-yellow); }
-a.chip-sponsors, a.chip-sponsors:visited, a.chip-sponsors:hover { background: var(--ink-sponsors); color: var(--on-sponsors); }
+.db-field .db-input:focus { outline: none; }
+.db-input-flat { border: var(--border); background: var(--surface-page); }
+.db-input::placeholder { color: var(--text-3); opacity: 1; }
+
+
+/* The spine carries a mark instead of a word here: the note is an aside, and
+   a vertical "DID YOU KNOW?" shouted as loudly as a panel title read like
+   one. Body is one step down from the running copy. */
+.db-callout { display: grid; grid-template-columns: max-content 1fr; }
+.db-callout-spine {
+  display: grid; place-items: center; width: 36px;
+  background: var(--project-ink); color: var(--project-ink-contrast);
+  border-right: var(--border);
+}
+.db-callout-body { padding: var(--space-5) var(--space-6); font: var(--type-dek); color: var(--text-2); }
+.db-callout-promo { background: color-mix(in srgb, var(--ink-yellow) 22%, var(--surface-card)); }
+.db-callout-promo .db-callout-spine { background: var(--ink-yellow); color: var(--on-yellow); width: 44px; }
+.db-callout-promo .db-callout-body { color: var(--text-1); font: var(--type-body); }
+
+/* Support links: each takes a system ink with its on-* partner, so they
+   stay legible in all three themes. */
+.db-chip {
+  display: inline-flex; align-items: center; padding: 5px 9px;
+  font: var(--type-label); text-transform: uppercase; letter-spacing: var(--tracking-meta); text-decoration: none;
+}
+a.db-chip-pix, a.db-chip-pix:visited, a.db-chip-pix:hover { background: var(--ink-pix); color: var(--on-pix); }
+a.db-chip-apoiase, a.db-chip-apoiase:visited, a.db-chip-apoiase:hover { background: var(--ink-orange); color: var(--on-orange); }
+a.db-chip-coffee, a.db-chip-coffee:visited, a.db-chip-coffee:hover { background: var(--ink-yellow); color: var(--on-yellow); }
+a.db-chip-sponsors, a.db-chip-sponsors:visited, a.db-chip-sponsors:hover { background: var(--ink-sponsors); color: var(--on-sponsors); }
 
 .status {
   margin-bottom: var(--space-6);
@@ -148,7 +159,6 @@ a.chip-sponsors, a.chip-sponsors:visited, a.chip-sponsors:hover { background: va
   font: var(--weight-bold) var(--text-display-4)/1.25 var(--font-body);
   text-align: center;
 }
-.lead { font: var(--type-body); max-width: var(--measure-reading); margin-inline: auto; color: var(--text-2); text-align: center; }
 .empty { color: var(--text-2); }
 
 /* Buttons: 44px touch targets on top of the DS .btn. */
@@ -278,9 +288,6 @@ div.alert { display: flex; flex-direction: column; align-items: flex-start; gap:
 .panel-h.split { display: flex; justify-content: space-between; gap: var(--space-4); font-size: var(--text-caption); }
 .panel-b { padding: var(--space-6); }
 .panel-b > .stack, .panel-b.stack { gap: var(--space-5); }
-
-/* Landing: the buttons stack at full width, like skypicker's sign-in. */
-.sign-in .actions { flex-direction: column; align-items: stretch; gap: var(--space-5); }
 
 .faq-list { display: flex; flex-direction: column; padding: 0; }
 .faq-item { border-bottom: 1px dotted var(--border-dotted); }
@@ -591,3 +598,15 @@ li[data-state="error"] .step-state {
 #save-status:empty { display: none; }
 
 .not-found h2 { margin-top: var(--space-8); }
+
+/* A text link that has to be a button: it runs an action, not a navigation. */
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.link-button:disabled { color: var(--text-2); cursor: not-allowed; }

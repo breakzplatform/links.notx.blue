@@ -19,17 +19,16 @@ export type Shell = {
 
 export function createShell(root: HTMLElement): Shell {
   const skip = el('a', { className: 'skip', attrs: { href: '#content' } })
-  const tagline = el('p', { className: 'meta-line text-center' })
 
   // Like down.blue, the language button names where a tap takes you: the other
   // language, in that language.
-  const language = el('button', { className: 'btn sm cast press toggle', attrs: { type: 'button', id: 'language' } })
+  const language = el('button', { className: 'db-btn db-btn-sm cast press', attrs: { type: 'button', id: 'language' } })
   language.addEventListener('click', () => {
     setLocale(otherLocale(getLocale()))
   })
 
   const themeLabel = el('span')
-  const theme = el('button', { className: 'btn sm cast press toggle theme-switch', attrs: { type: 'button', id: 'theme' } },
+  const theme = el('button', { className: 'db-btn db-btn-sm cast press theme-switch', attrs: { type: 'button', id: 'theme' } },
     icon('sun'),
     icon('moon'),
     icon('terminal'),
@@ -51,13 +50,14 @@ export function createShell(root: HTMLElement): Shell {
   const status = el('p', { className: 'status', attrs: { role: 'status' } })
   const main = el('main', { attrs: { id: 'content' } })
 
-  const header = el('header', { className: 'masthead' },
-    el('div', { className: 'controls' }, language, theme),
-    el('a', { className: 'wordmark-link', attrs: { href: '/', 'aria-label': 'links.notx.blue' } },
-      el('span', { className: 'ink-block tilt' }, 'links'),
-      '.notx.blue',
+  const header = el('header', {},
+    el('div', { className: 'flex flex-wrap items-center justify-end gap-2 pt-4' }, language, theme),
+    el('div', { className: 'db-wordmark' },
+      el('a', { attrs: { href: '/', 'aria-label': 'links.notx.blue' } },
+        el('span', { className: 'ink-block tilt-cw' }, 'links'),
+        '.notx.blue',
+      ),
     ),
-    tagline,
   )
 
   const footerStatus = el('span')
@@ -67,24 +67,26 @@ export function createShell(root: HTMLElement): Shell {
   const viewSource = el('a', { attrs: { href: SOURCE_URL } })
   const privacy = el('a', { attrs: { href: PRIVACY_URL } })
   const abuse = el('a', { attrs: { href: `mailto:${ABUSE_CONTACT}` } })
-  const fromBrazil = el('p', { className: 'note-line' })
-  const support = el('span', { className: 'micro' })
-  const footer = el('footer', { className: 'site-foot' },
-    el('p', { className: 'meta-line' },
+  const fromBrazil = el('p', { className: 'db-note mb-6 text-center' })
+  const support = el('span', { className: 'db-micro mr-1 text-text-3' })
+  const chip = (kind: string, href: string, label: string) =>
+    el('a', { className: `db-chip db-chip-${kind} cast press`, attrs: { href, target: '_blank', rel: 'noopener' }, text: label })
+  const footer = el('footer', { className: 'pt-6' },
+    el('p', { className: 'db-meta mb-6 text-center' },
       footerStatus, ' · ', bug, ' · ', partOf, ' ', el('a', { attrs: { href: 'https://notx.blue' }, text: 'notx.blue' }), ' ', byAuthor, ' ',
       el('a', { attrs: { href: AUTHOR_PROFILE }, text: '@joseli.to' }), ' · ', viewSource, ' · ', privacy, ' · ', abuse,
     ),
     fromBrazil,
-    el('div', { className: 'support' },
+    el('div', { className: 'mb-6 flex flex-wrap items-center justify-center gap-2' },
       support,
-      el('a', { className: 'chip-link chip-pix cast press', attrs: { href: 'https://pix.joseli.to', target: '_blank', rel: 'noopener' }, text: 'Pix' }),
-      el('a', { className: 'chip-link chip-coffee cast press', attrs: { href: 'https://buymeacoffee.com/joselito', target: '_blank', rel: 'noopener' }, text: 'Buy Me a Coffee' }),
-      el('a', { className: 'chip-link chip-sponsors cast press', attrs: { href: 'https://github.com/sponsors/breakzplatform', target: '_blank', rel: 'noopener' }, text: 'GitHub Sponsors' }),
+      chip('pix', 'https://pix.joseli.to', 'Pix'),
+      chip('coffee', 'https://buymeacoffee.com/joselito', 'Buy Me a Coffee'),
+      chip('sponsors', 'https://github.com/sponsors/breakzplatform', 'GitHub Sponsors'),
     ),
   )
 
   root.replaceChildren(
-    el('div', { className: 'wrap' }, skip, header, status, main, footer),
+    el('div', { className: 'mx-auto max-w-[880px] px-6 pb-16' }, skip, header, status, main, footer),
   )
 
   const shell: Shell = {
@@ -92,7 +94,6 @@ export function createShell(root: HTMLElement): Shell {
     refresh() {
       document.title = t('appTitle')
       setText(skip, t('skip'))
-      setText(tagline, t('tagline'))
       setText(footerStatus, t('footerStatus'))
       setText(bug, t('foundBug'))
       bug.href = getLocale() === 'en' ? BUG_FORM_EN : BUG_FORM_PT

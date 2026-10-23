@@ -34,11 +34,27 @@
 @source "../404.html";
 @source "../src/**/*.ts";
 
-/* links.notx.blue runs on the system's brown ink, the one hue no sibling site uses. One rule picks it for every
-   theme: it sits on `:root, [data-theme]` after the imports, so it beats each
-   theme block's default project ink and resolves to that theme's value. */
+/* links.notx.blue's ink is its own green, defined once here so it can be
+   swapped: --links-ink for light, --links-ink-dark for dark, each with the text
+   colour that sits on it (light 6.4:1 on its text and 5.7:1 on the paper; dark 6.5:1 and 5.7:1).
+   Terminal keeps the system's amber. The rules come after the imports, so they
+   beat each theme block's default project ink. */
+:root {
+  --links-ink: #2E6B3F;
+  --links-ink-contrast: #FFFFFF;
+  --links-ink-dark: #46A062;
+  --links-ink-dark-contrast: #000000;
+}
 :root,
 [data-theme] {
-  --project-ink: var(--ink-brown);
-  --project-ink-contrast: var(--on-brown);
+  --project-ink: var(--links-ink);
+  --project-ink-contrast: var(--links-ink-contrast);
+}
+[data-theme="dark"] {
+  --project-ink: var(--links-ink-dark);
+  --project-ink-contrast: var(--links-ink-dark-contrast);
+}
+[data-theme="terminal"] {
+  --project-ink: var(--ink-amber);
+  --project-ink-contrast: #000000;
 }

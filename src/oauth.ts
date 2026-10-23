@@ -3,7 +3,7 @@ import {
   OAuthResponseError,
   type OAuthSession,
 } from '@atproto/oauth-client-browser'
-import { CLIENT_ID, HANDLE_RESOLVER, SCOPE } from './lib/config'
+import { HANDLE_RESOLVER, SCOPE } from './lib/config'
 import { createXrpc } from './lib/xrpc'
 import type { Did, Xrpc } from './lib/types'
 
@@ -21,7 +21,7 @@ function devRedirectUri(): string {
 }
 
 function clientIdFor(): string {
-  if (!loopbackPage()) return CLIENT_ID
+  if (!loopbackPage()) return `${location.origin}/client-metadata.json`
   // The loopback client id is the client metadata. The callback has to be
   // exchanged with the same id, including the scope sent to PAR.
   return `http://localhost?redirect_uri=${encodeURIComponent(devRedirectUri())}&scope=${encodeURIComponent(SCOPE)}`

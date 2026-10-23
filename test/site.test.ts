@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { clientMetadata } from '../server/client-metadata'
+import { SCOPE } from '../src/lib/config'
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8')
 
@@ -33,17 +35,22 @@ describe('project ink', () => {
   const dark = read('scripts/ds/tokens/dark.css')
   const input = read('scripts/tailwind-input.css')
 
-  it('is the brown ink, not blue', () => {
-    expect(input).toContain('--project-ink: var(--ink-brown)')
-    expect(input).toContain('--project-ink-contrast: var(--on-brown)')
+  it('is defined once as the green tokens, terminal keeping amber', () => {
+    expect(input).toContain('--links-ink: #2E6B3F')
+    expect(input).toContain('--project-ink: var(--links-ink)')
+    expect(input).toContain('--project-ink: var(--links-ink-dark)')
+    expect(input).toContain('--project-ink: var(--ink-amber)')
   })
 
-  for (const [theme, css, paper] of [['light', light, 'surface-card'], ['dark', dark, 'surface-card']] as const) {
+  const themes = [
+    ['light', '--links-ink', '--links-ink-contrast', hex('surface-page', light, 'light')],
+    ['dark', '--links-ink-dark', '--links-ink-dark-contrast', hex('surface-page', dark, 'dark')],
+  ] as const
+  for (const [theme, inkName, onName, paper] of themes) {
     it(`meets 4.5:1 on its text and on the paper in ${theme}`, () => {
-      const ink = hex('ink-brown', css, theme)
-      const onInk = hex('on-brown', css, theme)
-      expect(contrast(ink, onInk)).toBeGreaterThanOrEqual(4.5)
-      expect(contrast(ink, hex(paper, css, theme))).toBeGreaterThanOrEqual(4.5)
+      const pick = (name: string) => input.match(new RegExp(`${name}:\\s*(#[0-9A-Fa-f]{6})`))![1]!
+      expect(contrast(pick(inkName), pick(onName))).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(pick(inkName), paper)).toBeGreaterThanOrEqual(4.5)
     })
   }
 })
@@ -53,7 +60,16 @@ describe('privacy and abuse', () => {
     for (const file of ['index.html', '404.html', 'README.md', 'src/lib/config.ts', 'src/ui/shell.ts']) {
       expect(read(file)).not.toContain('abuse@joseli.to')
     }
-    expect(read('public/client-metadata.json')).toContain('https://notx.blue/privacy')
+    expect(clientMetadata('https://example.com').policy_uri).toBe('https://notx.blue/privacy')
     expect(read('src/ui/shell.ts')).toContain('https://notx.blue/privacy')
+  })
+})
+
+describe('client metadata', () => {
+  it('is per origin, so previews can sign in', () => {
+    const meta = clientMetadata('https://preview--links.netlify.app')
+    expect(meta.client_id).toBe('https://preview--links.netlify.app/client-metadata.json')
+    expect(meta.redirect_uris).toEqual(['https://preview--links.netlify.app/'])
+    expect(meta.scope).toBe(SCOPE)
   })
 })

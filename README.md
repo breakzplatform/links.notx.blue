@@ -22,7 +22,7 @@ The interface is in English and Brazilian Portuguese. It follows your browser's 
 
 Bluesky launched profile links on 2026-10-22. Each link is an `app.bsky.actor.link` record in the user's repo, with an icon (a blob) that the official app fills with the site's favicon. Any client can write that record with a different blob, and the AppView serves the blob as is. This site does exactly that.
 
-1. **Sign-in** is OAuth with `@atproto/oauth-client-browser` (public client, DPoP, PKCE). Tokens stay in the browser's IndexedDB. The client metadata lives at `/client-metadata.json`.
+1. **Sign-in** is OAuth with `@atproto/oauth-client-browser` (public client, DPoP, PKCE). Tokens stay in the browser's IndexedDB. The client metadata is served at `/client-metadata.json` by a Netlify function that builds it from the requesting origin, so deploy previews can sign in too.
 2. **The scope** is `atproto repo:app.bsky.actor.link repo:app.bsky.actor.profile?action=create&action=update blob?accept=image/png&accept=image/jpeg&accept=image/webp`. It is narrower than the `app.bsky.authManageProfile` permission set, which also grants status and notification declaration writes. Reads use public endpoints, so no `rpc:` scope is needed.
 3. **Saving** is `uploadBlob`, then `putRecord` for the link (a TID rkey when new), then `putRecord` for the profile with `swapRecord` (CID). Only the profile's `links` field changes; everything else round-trips byte for byte. If another client edits the profile in between, the operation is redone on the new record, up to 3 attempts.
 4. **Validation** matches Bluesky (`social-app` and the AppView): https only, no shorteners, no blocked domains, title up to 40 graphemes / 320 bytes, icon PNG/JPEG/WebP up to 100,000 bytes, at most 10 links.

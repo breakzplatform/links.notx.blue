@@ -8,7 +8,6 @@ const STORAGE_KEY = 'links.locale'
 
 const messages = {
   appTitle: { 'pt-BR': 'links.notx.blue — Ícones próprios nos links do Bluesky', en: 'links.notx.blue — Custom icons for Bluesky profile links' },
-  tagline: { 'pt-BR': 'Ícones próprios nos links do perfil do Bluesky', en: 'Custom icons for Bluesky profile links' },
   skip: { 'pt-BR': 'Ir para o conteúdo', en: 'Skip to content' },
   privacyLink: { 'pt-BR': 'Privacidade', en: 'Privacy' },
   themeLight: { 'pt-BR': 'claro', en: 'light' },
@@ -20,17 +19,13 @@ const messages = {
     'pt-BR': 'O servidor de login recusou o escopo pedido (invalid_scope). A entrada foi interrompida.',
     en: 'The sign-in server rejected the requested scope (invalid_scope). Sign-in stopped.',
   },
-  landingTitle: { 'pt-BR': 'Ícones nos links do perfil', en: 'Icons on your profile links' },
+  leadStrong: { 'pt-BR': 'Escolha o ícone de cada link do seu perfil no Bluesky.', en: 'Pick the icon for each link on your Bluesky profile.' },
+  leadRest: { 'pt-BR': 'O link continua apontando direto para o destino.', en: 'The link still points straight at its destination.' },
+  signInNote: { 'pt-BR': 'Você entra no próprio Bluesky.', en: 'You sign in on Bluesky itself.' },
+  promoLabel: { 'pt-BR': 'Você sabia?', en: 'Did you know?' },
+  promoLead: { 'pt-BR': 'Quer baixar um vídeo do Bluesky? Use o', en: 'Want to save a Bluesky video? Try' },
   handleHint: { 'pt-BR': 'nome.bsky.social ou seu domínio', en: 'name.bsky.social or your domain' },
   handleLabel: { 'pt-BR': 'Seu handle', en: 'Your handle' },
-  landingLead: {
-    'pt-BR': 'Escolha o ícone de cada link do seu perfil no Bluesky. O link continua apontando direto para o destino.',
-    en: 'Pick the icon for each link on your Bluesky profile. The link still points straight at its destination.',
-  },
-  signInLead: {
-    'pt-BR': 'Entre com o Bluesky para escolher o link e o ícone. A sessão fica só neste navegador e a senha nunca passa por aqui.',
-    en: 'Sign in with Bluesky to pick the link and its icon. The session stays in this browser and your password never comes through here.',
-  },
   panelLinks: { 'pt-BR': 'Seus links', en: 'Your links' },
   panelAddress: { 'pt-BR': '1 · Link', en: '1 · Link' },
   panelIcon: { 'pt-BR': '2 · Ícone', en: '2 · Icon' },
@@ -57,11 +52,6 @@ const messages = {
   },
   support: { 'pt-BR': 'Apoie este projeto:', en: 'Support this project:' },
   faqTitle: { 'pt-BR': 'Perguntas frequentes', en: 'FAQ' },
-  faqWhatQ: { 'pt-BR': 'O que este site faz?', en: 'What does this site do?' },
-  faqWhatA: {
-    'pt-BR': 'Deixa você escolher o ícone de cada link do seu perfil no Bluesky. Ele grava o ícone no registro do link (app.bsky.actor.link) no seu repositório, e o link continua apontando para o endereço que você informou.',
-    en: 'It lets you choose the icon of each link on your Bluesky profile. It writes the icon into the link record (app.bsky.actor.link) in your repo, and the link still points at the address you entered.',
-  },
   faqWhereQ: { 'pt-BR': 'Onde o ícone aparece?', en: 'Where does the icon show up?' },
   faqWhereA: {
     'pt-BR': 'Na pílula do link, logo abaixo da bio do seu perfil no app do Bluesky, à esquerda do título. A prévia do editor imita essa pílula nos temas claro e escuro. Sem ícone, o app mostra um globo.',
@@ -94,8 +84,8 @@ const messages = {
   },
   signInTitle: { 'pt-BR': 'Entrar com o Bluesky', en: 'Sign in with Bluesky' },
   signIn: { 'pt-BR': 'Entrar', en: 'Sign in' },
-  signInBsky: { 'pt-BR': 'Entrar com bsky.social', en: 'Sign in with bsky.social' },
-  handleRequired: { 'pt-BR': 'Informe o handle ou use o botão do bsky.social.', en: 'Enter a handle, or use the bsky.social button.' },
+  signInBsky: { 'pt-BR': 'Usar bsky.social', en: 'Use bsky.social' },
+  handleRequired: { 'pt-BR': 'Informe o handle.', en: 'Enter your handle.' },
   signingIn: { 'pt-BR': 'Abrindo o Bluesky…', en: 'Opening Bluesky…' },
   signInCancelled: { 'pt-BR': 'A entrada foi cancelada.', en: 'Sign-in was cancelled.' },
   sessionEnded: { 'pt-BR': 'A sessão acabou. Entre de novo.', en: 'The session ended. Sign in again.' },

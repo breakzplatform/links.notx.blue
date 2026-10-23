@@ -1,6 +1,7 @@
 import { t } from '../i18n'
 import { normalizeSignInInput } from '../oauth'
 import { el } from './dom'
+import { icon } from './icons'
 import { renderFaq } from './faq'
 
 export function renderLanding(
@@ -13,39 +14,33 @@ export function renderLanding(
   },
 ): void {
   const handle = el('input', {
+    className: 'db-input',
     attrs: {
       id: 'handle',
       name: 'handle',
       type: 'text',
+      inputmode: 'url',
       autocomplete: 'username',
       autocapitalize: 'off',
       spellcheck: 'false',
+      placeholder: t('handleHint'),
+      'aria-label': t('handleLabel'),
+      'aria-describedby': 'handle-note',
     },
   })
   handle.disabled = options.busy
-  const handleError = el('p', { className: 'err', attrs: { id: 'handle-error', role: 'alert' } })
+  const submit = el('button', { className: 'db-btn db-btn-primary shrink-0 px-3 cast press', attrs: { type: 'submit', 'aria-label': t('signIn'), title: t('signIn') } }, icon('arrow-right', 18))
+  submit.disabled = options.busy
+  const bsky = el('button', { className: 'link-button', attrs: { type: 'button', id: 'bsky-sign-in' }, text: t('signInBsky') })
+  bsky.disabled = options.busy
+  bsky.addEventListener('click', () => options.onBsky())
+  const handleError = el('p', { className: 'db-note db-status-error mt-4', attrs: { id: 'handle-error', role: 'alert' } })
   handleError.hidden = true
 
-  const form = el('form', { className: 'stack' },
-    el('div', { className: 'field-block' },
-      el('label', { className: 'label', attrs: { for: 'handle' }, text: t('handleLabel') }),
-      el('span', { className: 'field cast' }, handle),
-      el('p', { className: 'hint', attrs: { id: 'handle-hint' }, text: t('handleHint') }),
-      handleError,
-    ),
-    el('div', { className: 'actions' },
-      el('button', { className: 'btn primary cast press', attrs: { type: 'submit' }, text: t('signIn') }),
-      el('button', { className: 'btn cast press', attrs: { type: 'button', id: 'bsky-sign-in' }, text: t('signInBsky') }),
-    ),
+  const form = el('form', { className: 'flex flex-wrap gap-2' },
+    el('span', { className: 'db-field cast min-w-0 flex-1' }, handle),
+    submit,
   )
-  const submit = form.querySelector('button[type="submit"]')
-  const bsky = form.querySelector('#bsky-sign-in')
-  if (submit instanceof HTMLButtonElement) submit.disabled = options.busy
-  if (bsky instanceof HTMLButtonElement) {
-    bsky.disabled = options.busy
-    bsky.addEventListener('click', () => options.onBsky())
-  }
-  handle.setAttribute('aria-describedby', 'handle-hint')
   form.addEventListener('submit', event => {
     event.preventDefault()
     const value = normalizeSignInInput(handle.value)
@@ -61,22 +56,32 @@ export function renderLanding(
     options.onSignIn(value)
   })
 
-  const error = el('p', { className: 'alert', attrs: { role: 'alert' }, text: options.error })
+  const error = el('p', { className: 'alert mb-6', attrs: { role: 'alert' }, text: options.error })
   error.hidden = options.error.length === 0
 
   main.replaceChildren(
-    el('section', { className: 'stack' },
-      el('h1', { className: 'headline', attrs: { id: 'page-title', tabindex: '-1' }, text: t('landingTitle') }),
-      el('p', { className: 'lead', text: t('landingLead') }),
-      error,
-      el('section', { className: 'panel cast sign-in', attrs: { 'aria-labelledby': 'sign-in-title' } },
-        el('h2', { className: 'panel-h', attrs: { id: 'sign-in-title' }, text: t('signInTitle') }),
-        el('div', { className: 'panel-b stack' },
-          el('p', { text: t('signInLead') }),
-          form,
-        ),
+    error,
+    el('section', { className: 'db-panel cast mt-15 mb-6', attrs: { 'aria-labelledby': 'page-title' } },
+      el('h1', { className: 'db-panel-head', attrs: { id: 'page-title', tabindex: '-1' } }, el('span', { text: t('signInTitle') })),
+      el('div', { className: 'p-4' },
+        el('p', { className: 'mb-5' }, el('strong', { text: t('leadStrong') }), ' ', t('leadRest')),
+        form,
+        handleError,
+        el('p', { className: 'db-note mt-4', attrs: { id: 'handle-note' } }, `${t('signInNote')} `, bsky),
       ),
-      renderFaq(),
+    ),
+    renderFaq(),
+    renderPromo(),
+  )
+}
+
+function renderPromo(): HTMLElement {
+  return el('aside', { className: 'db-callout db-callout-promo cast mb-9' },
+    el('span', { className: 'db-callout-spine', attrs: { role: 'img', 'aria-label': t('promoLabel'), title: t('promoLabel') } }, icon('star', 18)),
+    el('div', { className: 'db-callout-body' },
+      `${t('promoLead')} `,
+      el('a', { attrs: { href: 'https://down.blue' }, text: 'down.blue' }),
+      '.',
     ),
   )
 }
