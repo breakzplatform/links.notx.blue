@@ -4,7 +4,13 @@ import { encodeIcon } from '../lib/image/encode'
 import { PRESET_COLORS, drawPreset, firstGrapheme, type Preset } from '../lib/image/preset'
 import { IMAGE_SOURCE_TYPES, faviconUrl, fetchImageFromUrl, fileToBlob } from '../lib/image/source'
 import { loadTwemoji } from '../lib/image/twemoji'
-import { ConcurrentEditError, saveLink, type LinkView } from '../lib/profile-links'
+import {
+  ConcurrentEditError,
+  InvalidLinkError,
+  PartialSaveError,
+  saveLink,
+  type LinkView,
+} from '../lib/profile-links'
 import {
   TITLE_MAX_GRAPHEMES,
   getLinkHost,
@@ -23,7 +29,7 @@ import {
   type MessageKey,
 } from '../i18n'
 import { el, setText } from './dom'
-import { friendlyError } from './errors'
+import { friendlyError, invalidLinkText, partialSaveText } from './errors'
 import { formatBytes, mimeName } from './format'
 
 export type IconTab = 'upload' | 'url' | 'favicon' | 'preset' | 'keep' | 'none'
@@ -77,6 +83,7 @@ export type EditorState = {
   encodeError: string
   saving: boolean
   saveError: string
+  savedRkey: string | null
   stepsVisible: boolean
   steps: Record<StepName, StepMark>
   emojiImage: HTMLImageElement | null
@@ -121,6 +128,7 @@ export function createEditorState(link?: LinkView): EditorState {
     encodeError: '',
     saving: false,
     saveError: '',
+    savedRkey: null,
     stepsVisible: false,
     steps: { upload: 'pending', link: 'pending', profile: 'pending' },
     emojiImage: null,
@@ -153,6 +161,7 @@ export function renderEditor(
     xrpc: Xrpc | null
     onBack: () => void
     onSaved: () => void
+    onSaveFailed: () => void
     onConflict: () => void
     onStatus: (message: string) => void
   },
@@ -713,44 +722,58 @@ export function renderEditor(
         return
       }
     }
-    const uploadNeeded = producesIcon(state.tab)
+    const icon = state.tab === 'none' ? null : producesIcon(state.tab) ? state.encoded?.blob : undefined
+    const willUpload = icon instanceof Blob
     state.saving = true
     state.saveError = ''
     state.stepsVisible = true
-    // saveLink uploads, writes the link, then updates the profile as one call.
     state.steps = {
-      upload: uploadNeeded ? 'active' : 'skipped',
+      upload: willUpload ? 'pending' : 'skipped',
       link: 'pending',
       profile: 'pending',
     }
     sync()
+    const rkey = state.savedRkey ?? options.link?.rkey
     try {
-      const icon = state.tab === 'none' ? null : uploadNeeded ? state.encoded?.blob : undefined
       await saveLink(options.xrpc, {
-        ...(options.link ? { rkey: options.link.rkey } : {}),
+        ...(rkey ? { rkey } : {}),
         url: checked.url,
         ...(title.value ? { title: title.value } : { title: '' }),
         ...(icon !== undefined ? { icon } : {}),
+        onProgress: (step, phase) => {
+          if (generation !== editorGeneration) return
+          state.steps[step] = phase === 'start' ? 'active' : 'done'
+          sync()
+        },
       })
-      state.steps = {
-        upload: uploadNeeded ? 'done' : 'skipped',
-        link: 'done',
-        profile: 'done',
+      if (generation !== editorGeneration) return
+      for (const name of ['upload', 'link', 'profile'] as const) {
+        const mark = state.steps[name]
+        if (mark === 'pending' || mark === 'active') state.steps[name] = 'done'
       }
       sync()
       options.onSaved()
     } catch (error) {
+      if (generation !== editorGeneration) return
+      options.onSaveFailed()
+      state.saving = false
       if (error instanceof ConcurrentEditError) {
         options.onConflict()
         return
       }
-      state.saving = false
-      state.saveError = friendlyError(error)
-      state.steps = {
-        upload: uploadNeeded ? 'error' : 'skipped',
-        link: 'error',
-        profile: 'error',
-      }
+      const names = ['upload', 'link', 'profile'] as const
+      const active = names.find(name => state.steps[name] === 'active')
+      if (active) state.steps[active] = 'error'
+      else if (names.some(name => state.steps[name] === 'done')) {
+        if (error instanceof PartialSaveError) state.steps.profile = 'error'
+      } else state.stepsVisible = false
+      if (error instanceof PartialSaveError) {
+        state.savedRkey = error.rkey
+        state.saveError = partialSaveText(error)
+      } else if (error instanceof InvalidLinkError) {
+        state.urlTouched = true
+        state.saveError = invalidLinkText(error)
+      } else state.saveError = friendlyError(error)
       sync()
     }
   }

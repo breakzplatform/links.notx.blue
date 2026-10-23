@@ -95,9 +95,9 @@ export async function createAuth(): Promise<Auth> {
 
 async function sessionToXrpc(session: OAuthSession): Promise<Xrpc> {
   const info = await session.getTokenInfo()
-  // `aud` is the resource server (the PDS). The issuer is only the authorization server.
-  const pdsUrl = httpOrigin(info.aud) ?? httpOrigin(session.serverMetadata.issuer)
-  if (!pdsUrl) throw new Error('Session has no PDS URL')
+  // `aud` is the resource server (the PDS). A non-HTTP audience is not a PDS, and the issuer is not a fallback.
+  const pdsUrl = httpOrigin(info.aud)
+  if (!pdsUrl) throw new Error('Session audience is not a PDS URL')
   return createXrpc(session.fetchHandler.bind(session), asDid(session.did), pdsUrl)
 }
 

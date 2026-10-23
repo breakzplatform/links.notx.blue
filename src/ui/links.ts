@@ -21,6 +21,7 @@ export function renderLinks(
     hidden: LinkView[]
     busy: boolean
     error: string
+    repair: boolean
     confirm: ConfirmRequest
     onSignOut: () => void
     onAdd: () => void
@@ -29,10 +30,18 @@ export function renderLinks(
     onAddBack: (link: LinkView) => void
     onAsk: (request: ConfirmRequest) => void
     onConfirm: () => void
+    onRepair: () => void
   },
 ): void {
   const atLimit = options.shown.length >= MAX_PROFILE_LINKS
-  const error = el('p', { className: 'alert', attrs: { role: 'alert' }, text: options.error })
+  const repair = options.repair
+    ? el('button', { attrs: { type: 'button', id: 'repair-link' }, text: t('fixInEditor') })
+    : null
+  if (repair) repair.addEventListener('click', () => options.onRepair())
+  const error = el('div', { className: 'alert', attrs: { role: 'alert' } },
+    el('p', { text: options.error }),
+    repair,
+  )
   error.hidden = options.error.length === 0
 
   const add = el('button', { className: 'primary', attrs: { type: 'button', id: 'add-link' }, text: t('addLink') })

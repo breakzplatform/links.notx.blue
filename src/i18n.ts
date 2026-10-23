@@ -159,6 +159,15 @@ const messages = {
   stepSkipped: { 'pt-BR': 'Não precisa', en: 'Not needed' },
   stepError: { 'pt-BR': 'Falhou', en: 'Failed' },
   stepsLabel: { 'pt-BR': 'Progresso', en: 'Progress' },
+  partialSave: {
+    'pt-BR': 'O link foi salvo, mas ainda não entrou no perfil. Salve de novo para tentar colocar.',
+    en: 'The link was saved, but it is not on the profile yet. Save again to add it.',
+  },
+  fixInEditor: { 'pt-BR': 'Abrir no editor', en: 'Open in the editor' },
+  restoreMissing: {
+    'pt-BR': 'Esse registro de link não existe mais.',
+    en: 'That link record is gone.',
+  },
   concurrent: {
     'pt-BR': 'O perfil mudou em outro lugar. A lista foi recarregada. Tente de novo.',
     en: 'The profile changed elsewhere. The list was reloaded. Try again.',

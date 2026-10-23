@@ -3,16 +3,16 @@ import { MAX_PROFILE_LINKS } from '../lib/rules'
 import {
   ConcurrentEditError,
   deleteLink,
-  insertLink,
+  InvalidLinkError,
   loadLinks,
   reorderLinks,
-  updateProfileLinks,
+  restoreLink,
   type LinkView,
 } from '../lib/profile-links'
 import { XrpcError, type Xrpc } from '../lib/types'
 import { subscribeLocale, t } from '../i18n'
 import { createAuth, isCancelledSignIn, isInvalidScope, normalizeSignInInput, type Auth } from '../oauth'
-import { friendlyError } from './errors'
+import { friendlyError, invalidLinkText } from './errors'
 import { createEditorState, releaseEditor, renderEditor, type EditorState } from './editor'
 import { renderLanding } from './landing'
 import { controlId, renderLinks, type ConfirmRequest } from './links'
@@ -52,6 +52,8 @@ export async function startApp(shell: Shell): Promise<void> {
   let confirmFrom: string | null = null
   let previousMode: Mode | null = null
   let painting = false
+  let repair: LinkView | null = null
+  let refreshOnLeave = false
 
   function releaseCurrent(): void {
     if (!editor) return
@@ -87,11 +89,15 @@ export async function startApp(shell: Shell): Promise<void> {
         xrpc: mode === 'demo' ? null : xrpc,
         onBack: closeEditor,
         onSaved: () => {
-          const rkey = editing?.rkey
+          const rkey = editing?.rkey ?? editor?.savedRkey
+          refreshOnLeave = false
           releaseCurrent()
           mode = 'list'
           pendingFocus = rkey ? controlId('edit', rkey) : 'add-link'
           void reload(t('saved'))
+        },
+        onSaveFailed: () => {
+          refreshOnLeave = true
         },
         onConflict: () => {
           void afterConflict()
@@ -106,6 +112,7 @@ export async function startApp(shell: Shell): Promise<void> {
         hidden,
         busy,
         error,
+        repair: repair !== null,
         confirm,
         onSignOut: () => void signOut(),
         onAdd: () => {
@@ -134,6 +141,12 @@ export async function startApp(shell: Shell): Promise<void> {
           render()
         },
         onConfirm: () => void confirmPending(),
+        onRepair: () => {
+          if (!repair) return
+          const link = repair
+          repair = null
+          openEditor(link)
+        },
       })
     } else {
       renderLanding(shell.main, {
@@ -172,6 +185,13 @@ export async function startApp(shell: Shell): Promise<void> {
       node.focus()
       return
     }
+    if (id.startsWith('edit-')) {
+      const addBack = document.getElementById(`addback-${id.slice('edit-'.length)}`)
+      if (addBack instanceof HTMLElement) {
+        addBack.focus()
+        return
+      }
+    }
     document.getElementById('page-title')?.focus()
   }
 
@@ -182,6 +202,7 @@ export async function startApp(shell: Shell): Promise<void> {
     mode = 'demo'
     status = ''
     error = ''
+    repair = null
     pendingFocus = 'link-url'
     render()
   }
@@ -193,21 +214,30 @@ export async function startApp(shell: Shell): Promise<void> {
     mode = 'editor'
     status = ''
     error = ''
+    repair = null
     pendingFocus = 'link-url'
     render()
   }
 
   function closeEditor(): void {
-    const rkey = editing?.rkey
+    const rkey = editing?.rkey ?? editor?.savedRkey
     const backToList = Boolean(session)
+    const shouldRefresh = refreshOnLeave && backToList
     releaseCurrent()
     mode = backToList ? 'list' : 'signed-out'
     status = ''
     pendingFocus = backToList ? (rkey ? controlId('edit', rkey) : 'add-link') : 'page-title'
+    if (shouldRefresh && xrpc && session) {
+      void reload()
+      return
+    }
+    refreshOnLeave = false
     render()
   }
 
   async function reload(done?: string): Promise<boolean> {
+    refreshOnLeave = false
+    repair = null
     if (!xrpc || !session) return false
     const id = ++requestId
     busy = true
@@ -332,6 +362,8 @@ export async function startApp(shell: Shell): Promise<void> {
         shown = []
         hidden = []
         confirm = null
+        repair = null
+        refreshOnLeave = false
         error = ''
         releaseCurrent()
         mode = 'signed-out'
@@ -352,6 +384,8 @@ export async function startApp(shell: Shell): Promise<void> {
     shown = []
     hidden = []
     confirm = null
+    repair = null
+    refreshOnLeave = false
     busy = false
     status = ''
     error = t('sessionEnded')
@@ -385,11 +419,12 @@ export async function startApp(shell: Shell): Promise<void> {
   async function addBack(link: LinkView): Promise<void> {
     if (!xrpc || busy || shown.length >= MAX_PROFILE_LINKS) return
     busy = true
+    repair = null
     error = ''
     status = t('working')
     render()
     try {
-      await updateProfileLinks(xrpc, links => insertLink(links, { uri: link.uri, cid: link.cid }))
+      await restoreLink(xrpc, link.uri)
     } catch (err) {
       if (err instanceof ConcurrentEditError) {
         await afterConflict()
@@ -397,7 +432,15 @@ export async function startApp(shell: Shell): Promise<void> {
       }
       busy = false
       status = ''
-      error = friendlyError(err)
+      if (err instanceof InvalidLinkError) {
+        repair = link
+        error = invalidLinkText(err)
+        pendingFocus = 'repair-link'
+      } else if (err instanceof Error && err.message === 'missing') {
+        error = t('restoreMissing')
+      } else {
+        error = friendlyError(err)
+      }
       render()
       return
     }
@@ -407,12 +450,13 @@ export async function startApp(shell: Shell): Promise<void> {
   async function confirmPending(): Promise<void> {
     if (!xrpc || !confirm || busy) return
     const request = confirm
+    const target = [...shown, ...hidden].find(item => item.uri === request.uri)
     busy = true
     error = ''
     status = t('working')
     render()
     try {
-      await deleteLink(xrpc, request.uri)
+      await deleteLink(xrpc, request.uri, target?.cid)
     } catch (err) {
       if (err instanceof ConcurrentEditError) {
         await afterConflict()
