@@ -103,3 +103,7 @@ DNS: `links` is a DNS-only CNAME to `links-notx-blue.netlify.app` on the `notx.b
 ## Contact
 
 Abuse: abuse@notx.blue. Privacy policy: <https://notx.blue/privacy>.
+
+## License
+
+GPL-3.0-only, with additional terms under section 7 (attribution, renamed forks, no use of the names). See [LICENSE](LICENSE) and [NOTICE](NOTICE).
