@@ -10,15 +10,15 @@
   align-items: center;
   gap: var(--space-2);
   padding: 2px var(--space-2);
-  border: 2px solid currentColor;
-  background: transparent;
-  color: inherit;
+  border: 2px solid var(--project-ink);
+  background: var(--surface-card);
+  color: var(--project-ink);
   font: inherit;
   letter-spacing: inherit;
   text-transform: uppercase;
   cursor: pointer;
 }
-.editor-back:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.editor-back:focus-visible { outline: 2px solid var(--surface-card); outline-offset: 3px; }
 .editor-back:disabled { opacity: 0.5; cursor: default; }
 /* The box stays small inside the head; an invisible pseudo-element grows the
    hit area to a 44px target without growing the head. */
@@ -27,6 +27,7 @@
 
 /* Icon source tabs */
 .icon-source { margin-top: var(--space-4); }
+.icon-source-title { margin: 0; }
 /* The tab strip wraps on narrow screens. The 2px gaps show the border colour
    behind the tabs, so every row keeps clean dividers. */
 .tabs {
@@ -43,6 +44,14 @@
   padding: 6px 12px;
   border-right: 0;
   font-size: var(--text-body-sm);
+}
+/* The selected fill spreads over the gaps and the strip's own border, so no
+   ring of border colour shows between it and the fill (in dark the two
+   colours differ). */
+.tab[aria-selected="true"] {
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 0 var(--border-width) var(--text-1);
 }
 .tab:hover:not([aria-selected="true"]) {
   background: var(--link);
@@ -153,14 +162,14 @@
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  border: var(--border);
+  border: 1px solid var(--bsky-border);
   background: var(--bsky-bg);
   color: var(--bsky-text);
   font: 500 14px/20px system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   letter-spacing: 0;
 }
-.bsky-light { --bsky-bg: #FFFFFF; --bsky-text: #000000; --bsky-pill: #EFF2F6; --bsky-bar: #DCE2EA; }
-.bsky-dark { --bsky-bg: #000000; --bsky-text: #FFFFFF; --bsky-pill: #19222E; --bsky-bar: #232E3E; }
+.bsky-light { --bsky-bg: #FFFFFF; --bsky-text: #000000; --bsky-pill: #EFF2F6; --bsky-bar: #DCE2EA; --bsky-border: #DCE2EA; }
+.bsky-dark { --bsky-bg: #000000; --bsky-text: #FFFFFF; --bsky-pill: #19222E; --bsky-bar: #232E3E; --bsky-border: #2A3547; }
 .bsky-bio { display: flex; flex-direction: column; gap: 6px; }
 .bsky-bar { height: 10px; border-radius: 5px; background: var(--bsky-bar); }
 .bsky-bar:first-child { width: 72%; }
@@ -180,7 +189,6 @@
 .bsky-slot { display: flex; width: 17px; height: 17px; margin-inline: -2px; align-items: center; justify-content: center; }
 .bsky-favicon { width: 16px; height: 16px; border-radius: 2.67px; object-fit: cover; }
 .bsky-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bsky-pill.current { outline: 2px solid var(--project-ink); outline-offset: 2px; }
 
 .zoom-figure { margin: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .zoom-figure figcaption {

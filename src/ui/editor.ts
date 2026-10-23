@@ -202,7 +202,7 @@ export function renderEditor(
 
   const tabButtons = new Map<IconTab, HTMLButtonElement>()
   const panels = new Map<IconTab, HTMLElement>()
-  const tablist = el('div', { className: 'tabs cast', attrs: { role: 'tablist', 'aria-label': t('iconSources') } })
+  const tablist = el('div', { className: 'tabs cast', attrs: { role: 'tablist', 'aria-labelledby': 'icon-source-title' } })
 
   const fileInput = el('input', {
     attrs: { id: 'file-input', type: 'file', accept: IMAGE_SOURCE_TYPES.join(',') },
@@ -391,6 +391,7 @@ export function renderEditor(
     ),
     panel('panelIcon', 'panel-icon',
       el('div', { className: 'stack icon-source' },
+        el('p', { className: 'label icon-source-title', attrs: { id: 'icon-source-title' }, text: t('iconTypeTitle') }),
         tablist,
         ...panels.values(),
         imageStatus,
