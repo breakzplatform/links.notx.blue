@@ -6,7 +6,8 @@
   <link rel="stylesheet" href="../src/assets/tailwind-4.3.3.css" />
   <style>
     /* Design system v2: newsprint paper, CMU Serif 700 wordmark with "links" on
-       the ink block tilted -1.5deg, and the tagline on a halftone (dot) shadow.
+       the green project ink block tilted +1.5deg (as in the site header and
+       down.blue's card), and the tagline on a halftone (dot) shadow.
        The dot geometry is scaled up for a 1200px card read at thumbnail size. */
     html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: var(--surface-page); }
     .frame {
@@ -15,7 +16,7 @@
     }
     .wordmark {
       margin: 0;
-      font: var(--weight-display) 132px/1.1 var(--font-display);
+      font: var(--weight-display) 136px/1.1 var(--font-display);
       letter-spacing: var(--tracking-display);
       color: var(--text-1);
       white-space: nowrap;
@@ -33,7 +34,7 @@
 </head>
 <body>
   <div class="frame">
-    <h1 class="wordmark"><span class="ink-block tilt">links</span>.notx.blue</h1>
+    <h1 class="wordmark"><span class="ink-block tilt-cw">links</span>.notx.blue</h1>
     <p class="tagline cast">Custom icons for Bluesky profile links</p>
   </div>
 </body>
