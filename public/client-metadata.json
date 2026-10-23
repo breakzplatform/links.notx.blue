@@ -4,10 +4,17 @@
   "client_uri": "https://links.notx.blue/",
   "logo_uri": "https://links.notx.blue/icon-192.png",
   "policy_uri": "https://links.notx.blue/privacy",
-  "redirect_uris": ["https://links.notx.blue/"],
-  "scope": "atproto repo:app.bsky.actor.link repo:app.bsky.actor.profile blob:image/*",
-  "grant_types": ["authorization_code", "refresh_token"],
-  "response_types": ["code"],
+  "redirect_uris": [
+    "https://links.notx.blue/"
+  ],
+  "scope": "atproto repo:app.bsky.actor.link repo:app.bsky.actor.profile?action=create&action=update blob?accept=image/png&accept=image/jpeg&accept=image/webp",
+  "grant_types": [
+    "authorization_code",
+    "refresh_token"
+  ],
+  "response_types": [
+    "code"
+  ],
   "token_endpoint_auth_method": "none",
   "application_type": "web",
   "dpop_bound_access_tokens": true

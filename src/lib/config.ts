@@ -8,10 +8,16 @@ export const ABUSE_CONTACT = 'abuse@joseli.to'
 
 // Narrower than include:app.bsky.authManageProfile, which also grants
 // app.bsky.actor.status and app.bsky.notification.declaration writes.
-// Reads go to public endpoints, so no rpc: scope is needed.
-export const SCOPE =
-  'atproto repo:app.bsky.actor.link repo:app.bsky.actor.profile blob:image/*'
-export const FALLBACK_SCOPE = 'atproto transition:generic'
+// The profile record can be created or updated but never deleted, and blobs
+// are limited to the formats the link lexicon accepts. Reads go to public
+// endpoints, so no rpc: scope is needed. There is deliberately no automatic
+// fallback to transition:generic, which would grant full account access.
+export const SCOPE = [
+  'atproto',
+  'repo:app.bsky.actor.link',
+  'repo:app.bsky.actor.profile?action=create&action=update',
+  'blob?accept=image/png&accept=image/jpeg&accept=image/webp',
+].join(' ')
 
 export const LINK_COLLECTION = 'app.bsky.actor.link'
 export const PROFILE_COLLECTION = 'app.bsky.actor.profile'
