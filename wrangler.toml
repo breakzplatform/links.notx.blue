@@ -14,5 +14,5 @@ run_worker_first = ["/api/*"]
 
 [[ratelimits]]
 name = "IMAGE_PROXY_LIMITER"
-namespace_id = "1001"
+namespace_id = "48213"
 simple = { limit = 30, period = 60 }
