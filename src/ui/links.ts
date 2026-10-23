@@ -23,6 +23,7 @@ export function renderLinks(
     busy: boolean
     error: string
     repair: boolean
+    status?: string
     confirm: ConfirmRequest
     onSignOut: () => void
     onAdd: () => void
@@ -92,7 +93,7 @@ export function renderLinks(
       el('section', { className: 'panel cast', attrs: { 'aria-labelledby': 'page-title' } },
         el('h1', { className: 'panel-h split', attrs: { id: 'page-title', tabindex: '-1' } },
           el('span', { text: t('panelLinks') }),
-          el('span', { text: t('linksCount', { count: options.shown.length, max: MAX_PROFILE_LINKS }) }),
+          el('span', { className: 'db-panel-status', text: options.status || t('linksCount', { count: options.shown.length, max: MAX_PROFILE_LINKS }) }),
         ),
         el('div', { className: 'panel-b stack' },
           profileBlock(options),

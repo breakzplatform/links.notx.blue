@@ -84,6 +84,10 @@ h1[tabindex="-1"]:focus { outline: none; }
   letter-spacing: var(--tracking-meta); text-transform: uppercase;
 }
 
+/* The right end of a panel head: a count or the current status. It truncates
+   rather than wrapping, so the head never changes height. */
+.db-panel-status { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 
 /* Buttons carry only their type and colour; .cast.press in the markup does
    the halftone shadow, the lift on hover and the slam on press. */
