@@ -35,7 +35,7 @@ export function renderLinks(
 ): void {
   const atLimit = options.shown.length >= MAX_PROFILE_LINKS
   const repair = options.repair
-    ? el('button', { attrs: { type: 'button', id: 'repair-link' }, text: t('fixInEditor') })
+    ? el('button', { className: 'btn cast press', attrs: { type: 'button', id: 'repair-link' }, text: t('fixInEditor') })
     : null
   if (repair) repair.addEventListener('click', () => options.onRepair())
   const error = el('div', { className: 'alert', attrs: { role: 'alert' } },
@@ -44,7 +44,7 @@ export function renderLinks(
   )
   error.hidden = options.error.length === 0
 
-  const add = el('button', { className: 'primary', attrs: { type: 'button', id: 'add-link' }, text: t('addLink') })
+  const add = el('button', { className: 'btn primary cast press', attrs: { type: 'button', id: 'add-link' }, text: t('addLink') })
   add.disabled = options.busy || atLimit
   add.addEventListener('click', () => options.onAdd())
   const limit = el('p', { className: 'hint', attrs: { id: 'link-limit' }, text: t('limitReached') })
@@ -52,7 +52,7 @@ export function renderLinks(
   if (atLimit) add.setAttribute('aria-describedby', 'link-limit')
 
   const shown = options.shown.length === 0
-    ? el('p', { text: t('linksEmpty') })
+    ? el('p', { className: 'empty', text: t('linksEmpty') })
     : el('ol', { className: 'links' }, ...options.shown.map((link, index) => row(link, {
       busy: options.busy,
       confirm: options.confirm,
@@ -66,7 +66,7 @@ export function renderLinks(
     })))
 
   const hidden = options.hidden.length === 0
-    ? el('p', { text: t('hiddenEmpty') })
+    ? el('p', { className: 'empty', text: t('hiddenEmpty') })
     : el('ul', { className: 'links' }, ...options.hidden.map(link => row(link, {
       busy: options.busy,
       confirm: options.confirm,
@@ -85,14 +85,14 @@ export function renderLinks(
       error,
       el('div', { className: 'section-head' },
         el('h1', { attrs: { id: 'page-title', tabindex: '-1' }, text: t('shownHeading') }),
-        el('p', { className: 'hint', text: t('linksCount', { count: options.shown.length, max: MAX_PROFILE_LINKS }) }),
+        el('p', { className: 'meta', text: t('linksCount', { count: options.shown.length, max: MAX_PROFILE_LINKS }) }),
       ),
       shown,
       el('div', { className: 'actions' }, add),
       limit,
-      el('section', { className: 'stack' },
+      el('section', { className: 'stack hidden-records' },
         el('h2', { text: t('hiddenHeading') }),
-        el('p', { text: t('hiddenLead') }),
+        el('p', { className: 'hint', text: t('hiddenLead') }),
         hidden,
       ),
     ),
@@ -101,7 +101,7 @@ export function renderLinks(
 
 function profileBlock(options: { did: string; profile: PublicProfile | null; busy: boolean; onSignOut: () => void }): HTMLElement {
   const name = options.profile?.displayName || options.profile?.handle || options.did
-  const signOut = el('button', { attrs: { type: 'button' }, text: t('signOut') })
+  const signOut = el('button', { className: 'btn cast press', attrs: { type: 'button' }, text: t('signOut') })
   signOut.disabled = options.busy
   signOut.addEventListener('click', () => options.onSignOut())
   return el('div', { className: 'profile' },
@@ -137,29 +137,29 @@ function row(
   const actions = el('div', { className: 'actions' })
 
   if (options.mode === 'shown' && options.onMove && options.onEdit) {
-    const up = el('button', { attrs: { type: 'button', id: controlId('move-up', link.rkey) }, text: t('up') })
+    const up = el('button', { className: 'btn cast press', attrs: { type: 'button', id: controlId('move-up', link.rkey) }, text: t('up') })
     up.setAttribute('aria-label', t('moveUp', { label: view.label }))
     up.disabled = options.busy || options.index === 0
     up.addEventListener('click', () => options.onMove?.(options.index - 1))
-    const down = el('button', { attrs: { type: 'button', id: controlId('move-down', link.rkey) }, text: t('down') })
+    const down = el('button', { className: 'btn cast press', attrs: { type: 'button', id: controlId('move-down', link.rkey) }, text: t('down') })
     down.setAttribute('aria-label', t('moveDown', { label: view.label }))
     down.disabled = options.busy || options.index === options.count - 1
     down.addEventListener('click', () => options.onMove?.(options.index + 1))
-    const edit = el('button', { attrs: { type: 'button', id: controlId('edit', link.rkey) }, text: t('editShort') })
+    const edit = el('button', { className: 'btn cast press', attrs: { type: 'button', id: controlId('edit', link.rkey) }, text: t('editShort') })
     edit.setAttribute('aria-label', t('edit', { label: view.label }))
     edit.disabled = options.busy
     edit.addEventListener('click', () => options.onEdit?.())
-    const remove = el('button', { className: 'danger', attrs: { type: 'button', id: controlId('remove', link.rkey) }, text: t('removeShort') })
+    const remove = el('button', { className: 'btn cast press caution', attrs: { type: 'button', id: controlId('remove', link.rkey) }, text: t('removeShort') })
     remove.setAttribute('aria-label', t('remove', { label: view.label }))
     remove.disabled = options.busy
     remove.addEventListener('click', () => options.onAsk({ uri: link.uri, kind: 'remove' }))
     actions.append(up, down, edit, remove)
   } else if (options.onAddBack) {
-    const addBack = el('button', { attrs: { type: 'button', id: controlId('addback', link.rkey) }, text: t('addBackShort') })
+    const addBack = el('button', { className: 'btn cast press', attrs: { type: 'button', id: controlId('addback', link.rkey) }, text: t('addBackShort') })
     addBack.setAttribute('aria-label', t('addBack', { label: view.label }))
     addBack.disabled = options.addDisabled === true
     addBack.addEventListener('click', () => options.onAddBack?.())
-    const del = el('button', { className: 'danger', attrs: { type: 'button', id: controlId('delete', link.rkey) }, text: t('deleteShort') })
+    const del = el('button', { className: 'btn cast press caution', attrs: { type: 'button', id: controlId('delete', link.rkey) }, text: t('deleteShort') })
     del.setAttribute('aria-label', t('deleteRecord', { label: view.label }))
     del.disabled = options.busy
     del.addEventListener('click', () => options.onAsk({ uri: link.uri, kind: 'delete' }))
@@ -170,10 +170,13 @@ function row(
     ? confirmBox(view.label, options.confirm.kind, options.busy, options.onConfirm, () => options.onAsk(null))
     : null
 
-  return el('li', { className: 'link' },
+  return el('li', { className: options.mode === 'shown' ? 'link ranked' : 'link' },
+    options.mode === 'shown'
+      ? el('span', { className: 'rank', attrs: { 'aria-hidden': 'true' }, text: String(options.index + 1) })
+      : null,
     link.iconUrl
-      ? el('img', { className: 'icon', attrs: { src: link.iconUrl, alt: '', width: 40, height: 40 } })
-      : el('span', { className: 'icon placeholder', attrs: { 'aria-hidden': 'true' } }),
+      ? el('img', { className: 'link-icon', attrs: { src: link.iconUrl, alt: '', width: 40, height: 40 } })
+      : el('span', { className: 'link-icon placeholder', attrs: { 'aria-hidden': 'true' } }),
     el('div', { className: 'link-copy' },
       el('p', { className: 'link-title', text: view.label }),
       view.url,
@@ -186,13 +189,13 @@ function row(
 
 function confirmBox(label: string, kind: 'remove' | 'delete', busy: boolean, onConfirm: () => void, onCancel: () => void): HTMLElement {
   const question = kind === 'remove' ? t('confirmRemove', { label }) : t('confirmDelete', { label })
-  const yes = el('button', { className: 'danger', attrs: { type: 'button', id: 'confirm-action' }, text: t('confirmAction') })
+  const yes = el('button', { className: 'btn danger cast press', attrs: { type: 'button', id: 'confirm-action' }, text: t('confirmAction') })
   yes.disabled = busy
   yes.addEventListener('click', onConfirm)
-  const no = el('button', { attrs: { type: 'button', id: 'confirm-cancel' }, text: t('cancel') })
+  const no = el('button', { className: 'btn cast press', attrs: { type: 'button', id: 'confirm-cancel' }, text: t('cancel') })
   no.disabled = busy
   no.addEventListener('click', onCancel)
-  return el('div', { className: 'confirm', attrs: { role: 'group', 'aria-labelledby': 'confirm-question' } },
+  return el('div', { className: 'confirm cast', attrs: { role: 'group', 'aria-labelledby': 'confirm-question' } },
     el('p', { attrs: { id: 'confirm-question' }, text: question }),
     el('div', { className: 'actions' }, yes, no),
   )

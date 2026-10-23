@@ -5,8 +5,8 @@ import { el } from './dom'
 export function renderPrivacy(main: HTMLElement): void {
   main.replaceChildren(
     el('article', { className: 'stack prose' },
-      el('h1', { attrs: { id: 'page-title', tabindex: '-1' }, text: t('privacyH1') }),
-      el('p', { text: t('privacyIntro') }),
+      el('h1', { className: 'display-title', attrs: { id: 'page-title', tabindex: '-1' }, text: t('privacyH1') }),
+      el('p', { className: 'lead', text: t('privacyIntro') }),
       section(t('privacyBrowserTitle'), t('privacyBrowser')),
       section(t('privacyTokensTitle'), t('privacyTokens')),
       section(t('privacyStoreTitle'), t('privacyStore')),

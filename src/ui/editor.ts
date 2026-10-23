@@ -183,7 +183,7 @@ export function renderEditor(
     },
   })
   urlInput.value = state.url
-  const urlIssues = el('ul', { className: 'issues', attrs: { id: 'url-issues' } })
+  const urlIssues = el('ul', { className: 'issues err', attrs: { id: 'url-issues' } })
   const providerNote = el('p', { className: 'hint', attrs: { id: 'provider-note' } })
 
   const titleInput = el('input', {
@@ -191,7 +191,7 @@ export function renderEditor(
   })
   titleInput.value = state.title
   const titleCount = el('span', { className: 'counter', attrs: { id: 'title-count' } })
-  const titleIssues = el('ul', { className: 'issues', attrs: { id: 'title-issues' } })
+  const titleIssues = el('ul', { className: 'issues err', attrs: { id: 'title-issues' } })
 
   const tabs: IconTab[] = ['upload', 'url', 'favicon', 'preset']
   if (state.allowKeep) tabs.push('keep')
@@ -200,13 +200,13 @@ export function renderEditor(
 
   const tabButtons = new Map<IconTab, HTMLButtonElement>()
   const panels = new Map<IconTab, HTMLElement>()
-  const tablist = el('div', { className: 'tabs', attrs: { role: 'tablist', 'aria-label': t('iconSources') } })
+  const tablist = el('div', { className: 'tabs cast', attrs: { role: 'tablist', 'aria-label': t('iconSources') } })
 
   const fileInput = el('input', {
     attrs: { id: 'file-input', type: 'file', accept: IMAGE_SOURCE_TYPES.join(',') },
   })
-  const drop = el('div', { className: 'drop' },
-    el('label', { attrs: { for: 'file-input' }, text: t('fileLabel') }),
+  const drop = el('div', { className: 'drop cast-flat' },
+    el('label', { className: 'label', attrs: { for: 'file-input' }, text: t('fileLabel') }),
     el('p', { className: 'hint', text: t('fileHint') }),
     fileInput,
     el('p', { className: 'hint', attrs: { id: 'file-loaded' } }),
@@ -216,9 +216,9 @@ export function renderEditor(
     attrs: { id: 'image-url', type: 'url', inputmode: 'url', autocomplete: 'off', spellcheck: 'false' },
   })
   imageUrlInput.value = state.imageUrlField
-  const loadUrlButton = el('button', { attrs: { type: 'button' }, text: t('loadImage') })
+  const loadUrlButton = el('button', { className: 'btn cast press', attrs: { type: 'button' }, text: t('loadImage') })
 
-  const faviconButton = el('button', { attrs: { type: 'button' }, text: t('loadFavicon') })
+  const faviconButton = el('button', { className: 'btn cast press', attrs: { type: 'button' }, text: t('loadFavicon') })
 
   const presetInput = el('input', {
     attrs: { id: 'preset-text', type: 'text', autocomplete: 'off', maxlength: '16' },
@@ -246,7 +246,7 @@ export function renderEditor(
 
   const cropImg = el('img', { attrs: { alt: '' } })
   const cropStage = el('div', {
-    className: 'crop-stage',
+    className: 'crop-stage screen',
     attrs: { id: 'crop-stage', tabindex: '0', role: 'group', 'aria-describedby': 'crop-help' },
   }, cropImg)
   const zoom = el('input', {
@@ -256,7 +256,7 @@ export function renderEditor(
     el('p', { className: 'label', attrs: { id: 'crop-label' }, text: t('cropLabel') }),
     cropStage,
     el('p', { className: 'hint', attrs: { id: 'crop-help' }, text: t('cropHelp') }),
-    el('label', { attrs: { for: 'crop-zoom' }, text: t('zoom') }),
+    el('label', { className: 'label', attrs: { for: 'crop-zoom' }, text: t('zoom') }),
     zoom,
   )
   cropStage.setAttribute('aria-labelledby', 'crop-label')
@@ -265,7 +265,7 @@ export function renderEditor(
   imageStatus.hidden = true
 
   const rowPreview = el('div', { className: 'preview-row' })
-  const zoomPreview = el('img', { className: 'zoom-preview checker', attrs: { alt: '' } })
+  const zoomPreview = el('img', { className: 'zoom-preview screen', attrs: { alt: '' } })
   const previewMeta = el('p', { className: 'meta', attrs: { id: 'preview-meta' } })
   const previewEmpty = el('p', { className: 'zoom-empty', text: t('noIcon') })
 
@@ -281,15 +281,16 @@ export function renderEditor(
   }
   const saveStatus = el('p', { attrs: { id: 'save-status' } })
   const saveError = el('p', { className: 'alert', attrs: { role: 'alert' } })
-  const saveButton = el('button', { className: 'primary', attrs: { type: 'submit', id: 'save-link' } })
+  const saveButton = el('button', { className: 'btn primary lg cast press', attrs: { type: 'submit', id: 'save-link' } })
 
-  const back = el('button', { attrs: { type: 'button' }, text: t('back') })
+  const back = el('button', { className: 'btn ghost', attrs: { type: 'button' }, text: t('back') })
   back.addEventListener('click', () => {
     if (!state.saving) options.onBack()
   })
 
   function addTab(tab: IconTab, label: string, panel: HTMLElement): void {
     const button = el('button', {
+      className: 'tab',
       attrs: {
         type: 'button',
         role: 'tab',
@@ -310,22 +311,28 @@ export function renderEditor(
 
   addTab('upload', t('sourceUpload'), drop)
   addTab('url', t('sourceUrl'), el('div', { className: 'stack' },
-    el('label', { attrs: { for: 'image-url' }, text: t('imageUrlLabel') }),
-    imageUrlInput,
-    el('div', { className: 'actions' }, loadUrlButton),
+    el('div', { className: 'field-block' },
+      el('label', { className: 'label', attrs: { for: 'image-url' }, text: t('imageUrlLabel') }),
+      el('div', { className: 'input-row' },
+        el('span', { className: 'field cast' }, imageUrlInput),
+        loadUrlButton,
+      ),
+    ),
   ))
   addTab('favicon', t('sourceFavicon'), el('div', { className: 'stack' },
     el('p', { className: 'hint', text: t('faviconHint') }),
     el('div', { className: 'actions' }, faviconButton),
   ))
   addTab('preset', t('sourcePreset'), el('div', { className: 'stack' },
-    el('label', { attrs: { for: 'preset-text' }, text: t('presetTextLabel') }),
-    presetInput,
-    el('p', { className: 'hint', text: t('presetTextHint') }),
+    el('div', { className: 'field-block' },
+      el('label', { className: 'label', attrs: { for: 'preset-text' }, text: t('presetTextLabel') }),
+      el('span', { className: 'field cast' }, presetInput),
+      el('p', { className: 'hint', text: t('presetTextHint') }),
+    ),
     el('fieldset', { className: 'kinds' },
       el('legend', { text: t('presetTextLabel') }),
-      el('label', {}, letterRadio, t('kindLetter')),
-      el('label', {}, emojiRadio, t('kindEmoji')),
+      el('label', { className: 'opt' }, letterRadio, el('span', { className: 'box', attrs: { 'aria-hidden': 'true' } }), el('span', { text: t('kindLetter') })),
+      el('label', { className: 'opt' }, emojiRadio, el('span', { className: 'box', attrs: { 'aria-hidden': 'true' } }), el('span', { text: t('kindEmoji') })),
     ),
     el('fieldset', {},
       el('legend', { text: t('colorLegend') }),
@@ -336,7 +343,7 @@ export function renderEditor(
   if (state.allowKeep) {
     addTab('keep', t('sourceKeep'), el('div', { className: 'stack' },
       state.keepIconUrl
-        ? el('img', { className: 'icon', attrs: { src: state.keepIconUrl, alt: t('currentIcon'), width: 40, height: 40 } })
+        ? el('img', { className: 'link-icon', attrs: { src: state.keepIconUrl, alt: t('currentIcon'), width: 40, height: 40 } })
         : el('p', { text: t('currentIcon') }),
     ))
   }
@@ -358,10 +365,11 @@ export function renderEditor(
     tabButtons.get(tab)?.focus()
   })
 
-  const demoNote = el('p', { className: 'note', attrs: { id: 'demo-note' }, text: t('demoNote') })
+  const demoNote = el('p', { className: 'note warn', attrs: { id: 'demo-note' }, text: t('demoNote') })
   const form = el('form', { className: 'stack' },
     el('div', { className: 'actions' }, back),
     el('h1', {
+      className: 'display-title',
       attrs: { id: 'page-title', tabindex: '-1' },
       text: options.demo ? t('editorDemo') : editing ? t('editorEdit') : t('editorNew'),
     }),
@@ -370,24 +378,24 @@ export function renderEditor(
       el('p', { text: t('greenNote') }),
       providerNote,
     ),
-    el('div', { className: 'field' },
-      el('label', { attrs: { for: 'link-url' }, text: t('urlLabel') }),
-      urlInput,
+    el('div', { className: 'field-block' },
+      el('label', { className: 'label', attrs: { for: 'link-url' }, text: t('urlLabel') }),
+      el('span', { className: 'field cast' }, urlInput),
       urlIssues,
     ),
-    el('div', { className: 'field' },
-      el('label', { attrs: { for: 'link-title' } }, t('titleLabel'), ' ', titleCount),
-      titleInput,
+    el('div', { className: 'field-block' },
+      el('label', { className: 'label', attrs: { for: 'link-title' } }, t('titleLabel'), ' ', titleCount),
+      el('span', { className: 'field cast' }, titleInput),
       el('p', { className: 'hint', attrs: { id: 'title-hint' }, text: t('titleHint') }),
       titleIssues,
     ),
-    el('div', { className: 'stack' },
+    el('div', { className: 'stack icon-source' },
       tablist,
       ...panels.values(),
       imageStatus,
       cropBlock,
     ),
-    el('section', { className: 'stack', attrs: { 'aria-labelledby': 'preview-heading' } },
+    el('section', { className: 'stack preview', attrs: { 'aria-labelledby': 'preview-heading' } },
       el('h2', { attrs: { id: 'preview-heading' }, text: t('previewLabel') }),
       rowPreview,
       el('figure', { className: 'zoom-figure' },
@@ -981,8 +989,8 @@ function fakeLink(label: string, letter: string): HTMLElement {
 
 function liveLink(label: string, src: string | null): HTMLElement {
   const icon = src
-    ? el('img', { className: 'icon', attrs: { src, alt: '', width: 40, height: 40 } })
-    : el('span', { className: 'icon placeholder', attrs: { 'aria-hidden': 'true' } })
+    ? el('img', { className: 'link-icon', attrs: { src, alt: '', width: 40, height: 40 } })
+    : el('span', { className: 'link-icon placeholder', attrs: { 'aria-hidden': 'true' } })
   return el('figure', { className: 'preview-link current' },
     icon,
     el('figcaption', {},

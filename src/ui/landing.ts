@@ -23,19 +23,19 @@ export function renderLanding(
     },
   })
   handle.disabled = options.busy
-  const handleError = el('p', { className: 'field-error', attrs: { id: 'handle-error', role: 'alert' } })
+  const handleError = el('p', { className: 'err', attrs: { id: 'handle-error', role: 'alert' } })
   handleError.hidden = true
 
   const form = el('form', { className: 'stack' },
-    el('div', { className: 'field' },
-      el('label', { attrs: { for: 'handle' }, text: t('handleLabel') }),
-      handle,
+    el('div', { className: 'field-block' },
+      el('label', { className: 'label', attrs: { for: 'handle' }, text: t('handleLabel') }),
+      el('span', { className: 'field cast' }, handle),
       el('p', { className: 'hint', attrs: { id: 'handle-hint' }, text: t('handleHint') }),
       handleError,
     ),
     el('div', { className: 'actions' },
-      el('button', { className: 'primary', attrs: { type: 'submit' }, text: t('signIn') }),
-      el('button', { attrs: { type: 'button', id: 'bsky-sign-in' }, text: t('signInBsky') }),
+      el('button', { className: 'btn primary cast press', attrs: { type: 'submit' }, text: t('signIn') }),
+      el('button', { className: 'btn cast press', attrs: { type: 'button', id: 'bsky-sign-in' }, text: t('signInBsky') }),
     ),
   )
   const submit = form.querySelector('button[type="submit"]')
@@ -66,13 +66,14 @@ export function renderLanding(
 
   main.replaceChildren(
     el('section', { className: 'stack' },
-      el('h1', { attrs: { id: 'page-title', tabindex: '-1' }, text: t('landingTitle') }),
-      el('p', { text: t('landingLead') }),
+      el('h1', { className: 'display-title', attrs: { id: 'page-title', tabindex: '-1' }, text: t('landingTitle') }),
+      el('p', { className: 'lead', text: t('landingLead') }),
       error,
-      form,
-      el('p', { text: t('privacySummary') }),
-      el('p', {}, el('a', { attrs: { href: privacyLink() }, text: t('privacyLink') })),
-      el('p', {}, el('button', { attrs: { type: 'button', id: 'try-editor' }, text: t('tryEditor') })),
+      el('div', { className: 'panel cast sign-in' },
+        el('div', { className: 'panel-b' }, form),
+      ),
+      el('p', { className: 'hint' }, t('privacySummary'), ' ', el('a', { attrs: { href: privacyLink() }, text: t('privacyLink') })),
+      el('p', {}, el('button', { className: 'btn cast press', attrs: { type: 'button', id: 'try-editor' }, text: t('tryEditor') })),
     ),
   )
   const demo = main.querySelector('#try-editor')

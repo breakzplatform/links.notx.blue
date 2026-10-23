@@ -12,6 +12,10 @@ const messages = {
   languageLabel: { 'pt-BR': 'Idioma', en: 'Language' },
   skip: { 'pt-BR': 'Ir para o conteúdo', en: 'Skip to content' },
   privacyLink: { 'pt-BR': 'Privacidade', en: 'Privacy' },
+  themeLight: { 'pt-BR': 'claro', en: 'light' },
+  themeDark: { 'pt-BR': 'escuro', en: 'dark' },
+  themeTerminal: { 'pt-BR': 'terminal', en: 'terminal' },
+  themeAria: { 'pt-BR': 'Tema: {current}, toque para {next}', en: 'Theme: {current}, tap for {next}' },
   restoring: { 'pt-BR': 'Restaurando a sessão…', en: 'Restoring the session…' },
   invalidScope: {
     'pt-BR': 'O servidor de login recusou o escopo pedido (invalid_scope). A entrada foi interrompida.',

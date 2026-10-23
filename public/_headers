@@ -1,5 +1,5 @@
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://cdn.jsdelivr.net https://cardyb.bsky.app https:; connect-src 'self' https://cardyb.bsky.app https://*.bsky.network https://bsky.social https://public.api.bsky.app https://plc.directory https:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://cdn.jsdelivr.net https://cardyb.bsky.app https:; connect-src 'self' https://cardyb.bsky.app https://*.bsky.network https://bsky.social https://public.api.bsky.app https://plc.directory https:; font-src 'self' https://static.joseli.to; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
   Referrer-Policy: strict-origin-when-cross-origin
   Strict-Transport-Security: max-age=31536000
   X-Content-Type-Options: nosniff
