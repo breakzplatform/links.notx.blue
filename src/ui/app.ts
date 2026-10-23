@@ -307,7 +307,6 @@ export async function startApp(shell: Shell): Promise<void> {
     error = ''
     status = t('signingIn')
     signInFlight = true
-    setSessionHint(true)
     render()
     try {
       await authReady

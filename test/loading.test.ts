@@ -72,7 +72,7 @@ describe('initial loading', () => {
     button.click()
     expect(shell.main.querySelector('.signin-status')?.textContent).toBe(t('signingIn'))
     expect(auth.signIn).not.toHaveBeenCalled()
-    expect(localStorage.getItem('links.session')).toBe('1')
+    expect(localStorage.getItem('links.session')).toBeNull()
     client.resolve(auth)
     await ready
     await vi.waitFor(() => expect(auth.signIn).toHaveBeenCalledWith('https://bsky.social'))
