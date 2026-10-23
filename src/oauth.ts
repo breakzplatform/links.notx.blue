@@ -3,7 +3,7 @@ import { HANDLE_RESOLVER, SCOPE } from './lib/config'
 import { createXrpc } from './lib/xrpc'
 import type { Did, Xrpc } from './lib/types'
 
-type DeletedHandler = () => void
+type DeletedHandler = (sub?: string) => void
 
 function loopbackPage(): boolean {
   return location.hostname === '127.0.0.1' || location.hostname === 'localhost'
@@ -65,8 +65,9 @@ export async function createAuth(): Promise<Auth> {
   const client = await BrowserOAuthClient.load({
     clientId: clientIdFor(),
     handleResolver: HANDLE_RESOLVER,
-    onSessionDeleted() {
-      for (const handler of deleted) handler()
+    onSessionDeleted(sub, cause) {
+      console.warn('OAuth session deleted', cause instanceof Error ? cause.name : typeof cause)
+      for (const handler of deleted) handler(sub)
     },
   })
   const xrpcCache = new WeakMap<OAuthSession, Promise<Xrpc>>()

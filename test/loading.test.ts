@@ -33,7 +33,7 @@ const link: LinkView = {
   record: { $type: 'app.bsky.actor.link', url: 'https://example.com', title: 'Example', createdAt: '2026-01-01T00:00:00Z' },
 }
 const result = { shown: [link], hidden: [], profileCid: 'profile' }
-let deleted: () => void
+let deleted: (sub?: string) => void
 let auth: Auth
 
 beforeEach(() => {
@@ -148,6 +148,39 @@ describe('initial loading', () => {
     expect(loadLinks).not.toHaveBeenCalled()
     expect(localStorage.getItem('links.session')).toBeNull()
     expect(shell.main.querySelector('#bsky-sign-in')).not.toBeNull()
+  })
+
+  it('keeps the new session when the client revokes a leftover one during the callback', async () => {
+    history.replaceState(null, '', '/#state=abc&code=def&iss=https%3A%2F%2Fbsky.social')
+    vi.mocked(auth.init).mockImplementation(async () => {
+      deleted(session.did)
+      return session
+    })
+    const { shell, ready } = mount()
+    await ready
+    expect(loadLinks).toHaveBeenCalledOnce()
+    expect(shell.main.textContent).not.toContain(t('sessionEnded'))
+    expect(shell.main.querySelector('#bsky-sign-in')).toBeNull()
+    expect(localStorage.getItem('links.session')).toBe('1')
+    expect(createAuth).toHaveBeenCalledOnce()
+    expect(auth.init).toHaveBeenCalledOnce()
+  })
+
+  it('ignores the deletion of another account while signed in', async () => {
+    vi.mocked(auth.init).mockResolvedValue(session)
+    const { shell, ready } = mount()
+    await ready
+    deleted('did:plc:someone-else')
+    expect(shell.main.querySelector('#bsky-sign-in')).toBeNull()
+    expect(localStorage.getItem('links.session')).toBe('1')
+  })
+
+  it('shows the ended-session notice when the signed-in account is deleted', async () => {
+    vi.mocked(auth.init).mockResolvedValue(session)
+    const { shell, ready } = mount()
+    await ready
+    deleted(session.did)
+    expect(shell.main.querySelector('.alert')?.textContent).toContain(t('sessionEnded'))
   })
 
   it.each(['?code=example', '?state=example', '?iss=example', '#code=example', '#state=example', '#iss=example'])('recognizes callback hint %s without storage', query => {

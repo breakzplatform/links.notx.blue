@@ -7,7 +7,7 @@
 .signin-form { display: grid; gap: var(--space-4); margin: 0; }
 .signin-input-row { display: flex; flex-wrap: wrap; gap: var(--space-4); }
 .signin-input-row .db-field { flex: 1; min-width: 140px; }
-.signin-status { min-height: 1.5em; }
+.signin-status:empty { display: none; }
 @media (min-width: 640px) {
   .signin-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

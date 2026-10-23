@@ -45,7 +45,7 @@ describe('landing', () => {
     const { main } = landing(true, t('signingIn'))
     expect(main.querySelector('.db-panel .signin-status')?.textContent).toBe(t('signingIn'))
     expect([...main.querySelectorAll('button, input')].every(node => (node as HTMLButtonElement).disabled)).toBe(true)
-    expect(landing().main.querySelector('.signin-status')).not.toBeNull()
+    expect(landing().main.querySelector('.signin-status')?.childNodes).toHaveLength(0)
   })
 
   it('preserves the expanded form and typed handle across renders', () => {

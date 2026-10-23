@@ -265,7 +265,7 @@ export async function startApp(shell: Shell): Promise<void> {
   async function boot(): Promise<void> {
     try {
       auth = await createAuth()
-      auth.onDeleted(() => sessionDeleted())
+      auth.onDeleted(sub => sessionDeleted(sub))
       const id = requestId
       const restored = await auth.init()
       if (id !== requestId) return
@@ -288,6 +288,7 @@ export async function startApp(shell: Shell): Promise<void> {
       mode = 'list'
       await reload()
     } catch (err) {
+      console.warn('Sign-in restore failed', err instanceof Error ? err.name : typeof err)
       authError = err
       if (signInFlight) return
       session = undefined
@@ -365,7 +366,11 @@ export async function startApp(shell: Shell): Promise<void> {
     }
   }
 
-  function sessionDeleted(): void {
+  function sessionDeleted(sub?: string): void {
+    // The OAuth client revokes a leftover session of the same account while it
+    // processes the sign-in callback, before the new session exists. That is not
+    // the end of the session we are about to receive.
+    if (!session || (sub !== undefined && sub !== session.did)) return
     setSessionHint(false)
     if (signingOut) return
     loaded = false
