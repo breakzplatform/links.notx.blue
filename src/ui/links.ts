@@ -3,6 +3,7 @@ import type { LinkView } from '../lib/profile-links'
 import { t } from '../i18n'
 import { el } from './dom'
 import { renderFaq } from './faq'
+import { icon } from './icons'
 import type { PublicProfile } from './profile'
 
 export type ConfirmRequest = { uri: string; kind: 'remove' | 'delete' } | null
@@ -146,12 +147,12 @@ function row(
   const actions = el('div', { className: 'actions' })
 
   if (options.mode === 'shown' && options.onMove && options.onEdit) {
-    const up = el('button', { className: 'btn cast press', attrs: { type: 'button', id: controlId('move-up', link.rkey) }, text: t('up') })
-    up.setAttribute('aria-label', t('moveUp', { label: view.label }))
+    const upLabel = t('moveUp', { label: view.label })
+    const up = el('button', { className: 'btn icon-btn cast press', attrs: { type: 'button', id: controlId('move-up', link.rkey), 'aria-label': upLabel, title: upLabel } }, icon('arrow-up', 18))
     up.disabled = options.busy || options.index === 0
     up.addEventListener('click', () => options.onMove?.(options.index - 1))
-    const down = el('button', { className: 'btn cast press', attrs: { type: 'button', id: controlId('move-down', link.rkey) }, text: t('down') })
-    down.setAttribute('aria-label', t('moveDown', { label: view.label }))
+    const downLabel = t('moveDown', { label: view.label })
+    const down = el('button', { className: 'btn icon-btn cast press', attrs: { type: 'button', id: controlId('move-down', link.rkey), 'aria-label': downLabel, title: downLabel } }, icon('arrow-down', 18))
     down.disabled = options.busy || options.index === options.count - 1
     down.addEventListener('click', () => options.onMove?.(options.index + 1))
     const edit = el('button', { className: 'btn cast press', attrs: { type: 'button', id: controlId('edit', link.rkey) }, text: t('editShort') })

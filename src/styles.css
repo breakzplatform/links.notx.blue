@@ -176,6 +176,8 @@ a.db-chip-sponsors, a.db-chip-sponsors:visited, a.db-chip-sponsors:hover { backg
   border-color: var(--status-error);
 }
 .btn.ghost { padding-inline: 0; }
+/* Icon-only buttons are square touch targets; the name is the aria-label. */
+.btn.icon-btn { width: var(--target); padding-inline: 0; }
 .btn:disabled { color: var(--text-2); }
 
 .actions { display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: center; }
@@ -332,7 +334,6 @@ div.alert { display: flex; flex-direction: column; align-items: flex-start; gap:
   list-style: none;
   padding: 0;
   margin: 0;
-  border-top: var(--border);
 }
 .link {
   display: grid;
@@ -377,16 +378,14 @@ p.url { color: var(--text-3); }
   margin: var(--space-3) var(--shadow-offset) var(--shadow-offset) 0;
 }
 
-/* Icons are square 2px boxes, except in the Bluesky row preview. */
+/* List icons sit bare on the row; only the profile avatar keeps its 2px box. */
 .link-icon, .avatar {
   width: 40px;
   height: 40px;
   display: block;
   object-fit: cover;
-  border: var(--border);
-  background: var(--surface-card);
 }
-.avatar { width: 48px; height: 48px; }
+.avatar { width: 48px; height: 48px; border: var(--border); background: var(--surface-card); }
 .placeholder {
   background-color: var(--surface-card);
   background-image: radial-gradient(circle at 3px 3px, var(--halftone-dot) 1px, transparent 1.5px);
