@@ -60,6 +60,10 @@ export type Auth = {
 }
 
 export async function createAuth(): Promise<Auth> {
+  if (import.meta.env.DEV) {
+    const mock = new URLSearchParams(location.search).get('mock')
+    if (mock !== null) return (await import('../dev/mock-auth')).createMockAuth(mock)
+  }
   const deleted = new Set<DeletedHandler>()
   const client = await BrowserOAuthClient.load({
     clientId: clientIdFor(),
