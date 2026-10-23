@@ -4,7 +4,7 @@ export const REDIRECT_URI = `${SITE_ORIGIN}/`
 export const DEV_REDIRECT_URI = 'http://127.0.0.1:5173/'
 export const HANDLE_RESOLVER = 'https://bsky.social'
 export const PUBLIC_APPVIEW = 'https://public.api.bsky.app'
-export const ABUSE_CONTACT = 'abuse@joseli.to'
+export const ABUSE_CONTACT = 'abuse@notx.blue'
 
 // Narrower than include:app.bsky.authManageProfile, which also grants
 // app.bsky.actor.status and app.bsky.notification.declaration writes.

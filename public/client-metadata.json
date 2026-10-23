@@ -3,7 +3,7 @@
   "client_name": "Ícones de links / Link icons",
   "client_uri": "https://links.notx.blue/",
   "logo_uri": "https://links.notx.blue/icon-192.png",
-  "policy_uri": "https://links.notx.blue/privacy",
+  "policy_uri": "https://notx.blue/privacy",
   "redirect_uris": [
     "https://links.notx.blue/"
   ],

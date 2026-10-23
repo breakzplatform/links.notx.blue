@@ -15,8 +15,19 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
-# No redirects needed: Netlify serves dist/404.html for unknown paths and,
-# with pretty URLs, dist/privacy.html at /privacy.
+# The privacy policy is shared by every notx.blue app, so this site has none
+# of its own. Netlify serves dist/404.html for other unknown paths.
+[[redirects]]
+  from = "/privacy"
+  to = "https://notx.blue/privacy"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/privacy.html"
+  to = "https://notx.blue/privacy"
+  status = 301
+  force = true
 
 # The CSP allows only this origin for scripts and styles (Vite emits no inline
 # code; theme-boot.js is a file for that reason). Images and connections are
