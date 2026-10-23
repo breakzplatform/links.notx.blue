@@ -45,19 +45,30 @@
   border-right: 0;
   font-size: var(--text-body-sm);
 }
-/* The selected fill spreads over the gaps and the strip's own border, so no
-   ring of border colour shows between it and the fill (in dark the two
-   colours differ). */
-.tab[aria-selected="true"] {
-  position: relative;
-  z-index: 1;
-  box-shadow: 0 0 0 var(--border-width) var(--text-1);
-}
+/* A filled tab (selected, hovered, pressed) spreads its fill over the gaps and
+   the strip's own border through --tab-fill, so no ring of border colour
+   shows between fill and border (in dark the two colours differ). */
+.tab[aria-selected="true"] { --tab-fill: var(--text-1); }
 .tab:hover:not([aria-selected="true"]) {
-  background: var(--link);
+  --tab-fill: var(--link);
   color: var(--text-inverse);
   text-decoration: none;
 }
+.tab:active:not([aria-selected="true"]) {
+  --tab-fill: var(--link-active);
+  color: var(--text-inverse);
+  text-decoration: none;
+}
+.tab[aria-selected="true"],
+.tab:hover:not([aria-selected="true"]),
+.tab:active:not([aria-selected="true"]) {
+  position: relative;
+  z-index: 1;
+  background: var(--tab-fill);
+  box-shadow: 0 0 0 var(--border-width) var(--tab-fill);
+}
+/* Inset, so the focus ring sits flush against the border. */
+.tab:focus-visible { position: relative; z-index: 2; outline-offset: calc(var(--border-width) * -1); }
 
 .drop {
   display: flex;
