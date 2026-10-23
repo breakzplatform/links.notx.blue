@@ -1,5 +1,5 @@
 import { LINK_COLLECTION, PROFILE_COLLECTION } from './config'
-import { MAX_PROFILE_LINKS, validateIcon, validateLink, validateTitle } from './rules'
+import { MAX_PROFILE_LINKS, validateIcon, validateLink, validateTitle, type LinkIssue } from './rules'
 import { XrpcError, type BlobRef, type LinkRecord, type ProfileRecord, type StrongRef, type Xrpc } from './types'
 
 export class TooManyLinksError extends Error {
@@ -8,6 +8,19 @@ export class TooManyLinksError extends Error {
 export class ConcurrentEditError extends Error {
   constructor() { super('The profile was changed concurrently; please try again'); this.name = 'ConcurrentEditError' }
 }
+export class InvalidLinkError extends Error {
+  constructor(public issues: LinkIssue[], message = 'Invalid link URL or title') {
+    super(message)
+    this.name = 'InvalidLinkError'
+  }
+}
+export class PartialSaveError extends Error {
+  constructor(public ref: StrongRef, public rkey: string, cause: unknown) {
+    super('The link was saved but could not be added to the profile', { cause })
+    this.name = 'PartialSaveError'
+  }
+}
+export type SaveStep = 'upload' | 'link' | 'profile'
 export function insertLink(links: StrongRef[], ref: StrongRef, index = links.length): StrongRef[] {
   if (links.length >= MAX_PROFILE_LINKS) throw new TooManyLinksError()
   const result = [...links]
@@ -109,10 +122,13 @@ export function generateTid(): string {
 }
 export async function saveLink(xrpc: Xrpc, input: {
   rkey?: string; url: string; title?: string; icon?: Blob | BlobRef | null; createdAt?: string
+  onProgress?: (step: SaveStep, state: 'start' | 'done') => void
 }): Promise<StrongRef> {
   const validation = validateLink(input.url, { existingCount: 0, editing: !!input.rkey })
   const title = validateTitle(input.title ?? '')
-  if (!validation.url || title.issues.length) throw new Error('Invalid link URL or title')
+  if (!validation.url || title.issues.length) {
+    throw new InvalidLinkError(validation.issues, `Invalid link URL or title${title.issues.length ? `: ${title.issues.join(', ')}` : ''}`)
+  }
   const current = input.rkey ? await xrpc.getRecord<LinkRecord>(LINK_COLLECTION, input.rkey) : null
   const profile = await xrpc.getRecord<ProfileRecord>(PROFILE_COLLECTION, 'self')
   const references = profileLinks(profile?.value)
@@ -129,23 +145,56 @@ export async function saveLink(xrpc: Xrpc, input: {
     const icon = input.icon
     const issues = validateIcon(icon instanceof Blob ? icon : { type: icon.mimeType, size: icon.size })
     if (issues.length) throw new Error(`Invalid icon: ${issues.join(', ')}`)
-    record.icon = icon instanceof Blob ? await xrpc.uploadBlob(icon) : icon
+    if (icon instanceof Blob) {
+      input.onProgress?.('upload', 'start')
+      record.icon = await xrpc.uploadBlob(icon)
+      input.onProgress?.('upload', 'done')
+    } else record.icon = icon
   }
+  const rkey = input.rkey ?? generateTid()
   let ref: StrongRef
+  input.onProgress?.('link', 'start')
   try {
-    ref = await xrpc.putRecord(LINK_COLLECTION, input.rkey ?? generateTid(), record, { swapRecord: current?.cid ?? null })
+    ref = await xrpc.putRecord(LINK_COLLECTION, rkey, record, { swapRecord: current?.cid ?? null })
   } catch (error) {
     if (error instanceof XrpcError && error.error === 'InvalidSwap') throw new ConcurrentEditError()
     throw error
   }
-  await updateProfileLinks(xrpc, links => links.some(link => link.uri === ref.uri) ? replaceLink(links, ref.uri, ref) : insertLink(links, ref))
+  input.onProgress?.('link', 'done')
+  input.onProgress?.('profile', 'start')
+  try {
+    await updateProfileLinks(xrpc, links => links.some(link => link.uri === ref.uri) ? replaceLink(links, ref.uri, ref) : insertLink(links, ref))
+  } catch (error) {
+    throw new PartialSaveError(ref, rkey, error)
+  }
+  input.onProgress?.('profile', 'done')
   return ref
 }
-export async function deleteLink(xrpc: Xrpc, uri: string): Promise<void> {
+function linkRkey(xrpc: Xrpc, uri: string): string {
   const prefix = `at://${xrpc.did}/${LINK_COLLECTION}/`
   if (!uri.startsWith(prefix) || !uri.slice(prefix.length) || uri.slice(prefix.length).includes('/')) throw new Error('Invalid link record URI')
+  return uri.slice(prefix.length)
+}
+export async function restoreLink(xrpc: Xrpc, uri: string): Promise<StrongRef[]> {
+  const current = await xrpc.getRecord<LinkRecord>(LINK_COLLECTION, linkRkey(xrpc, uri))
+  if (!current) throw new Error('missing')
+  const validation = validateLink(typeof current.value.url === 'string' ? current.value.url : '', { existingCount: 0, editing: true })
+  if (validation.issues.length) throw new InvalidLinkError(validation.issues)
+  const ref = { uri, cid: current.cid }
+  return updateProfileLinks(xrpc, links => links.some(link => link.uri === uri) ? replaceLink(links, uri, ref) : insertLink(links, ref))
+}
+export async function deleteLink(xrpc: Xrpc, uri: string, cid?: string): Promise<void> {
+  const rkey = linkRkey(xrpc, uri)
   await updateProfileLinks(xrpc, links => removeLink(links, uri))
-  await xrpc.deleteRecord(LINK_COLLECTION, uri.slice(prefix.length))
+  try {
+    await xrpc.deleteRecord(LINK_COLLECTION, rkey, cid === undefined ? undefined : { swapRecord: cid })
+  } catch (error) {
+    if (error instanceof XrpcError) {
+      if (error.error === 'RecordNotFound') return
+      if (error.error === 'InvalidSwap') throw new ConcurrentEditError()
+    }
+    throw error
+  }
 }
 export async function reorderLinks(xrpc: Xrpc, uri: string, toIndex: number): Promise<StrongRef[]> {
   return updateProfileLinks(xrpc, links => moveLink(links, uri, toIndex))

@@ -97,6 +97,30 @@ describe('source: fetchImageFromUrl', () => {
     expect(callCount).toBe(2)
   })
 
+  it('retries via /api/image-proxy on opaque response', async () => {
+    const expectedBlob = new Blob([new Uint8Array([4, 5, 6])], { type: 'image/png' })
+    let callCount = 0
+    const fakeFetch = vi.fn().mockImplementation((input: string) => {
+      callCount++
+      if (callCount === 1) {
+        const opaqueResponse = new Response(null, { status: 200 })
+        Object.defineProperty(opaqueResponse, 'type', { value: 'opaque' })
+        return Promise.resolve(opaqueResponse)
+      }
+      expect(input).toBe('/api/image-proxy?url=https%3A%2F%2Fexample.com%2Favatar.png')
+      return Promise.resolve(
+        new Response(expectedBlob, {
+          status: 200,
+          headers: { 'Content-Type': 'image/png' },
+        }),
+      )
+    })
+
+    const blob = await fetchImageFromUrl('https://example.com/avatar.png', fakeFetch as typeof fetch)
+    expect(blob.type).toBe('image/png')
+    expect(callCount).toBe(2)
+  })
+
   it('does not retry proxy on non-TypeError exceptions', async () => {
     const fakeFetch = vi.fn().mockRejectedValue(new Error('AbortError or custom error'))
 
@@ -169,52 +193,29 @@ describe('source: fetchImageFromUrl', () => {
     expect(fakeFetch).not.toHaveBeenCalled()
   })
 
-  it('retries via /api/image-proxy when direct response is not ok or not an allowed image type', async () => {
-    const expectedBlob = new Blob([new Uint8Array([1, 2, 3])], { type: 'image/png' })
-    let callCount = 0
+  it('errors on direct non-ok or non-image response without calling proxy', async () => {
+    // Direct fetch returns 200 text/html -> errors without calling proxy (assert fetch called once)
+    const fakeFetchHtml = vi.fn().mockResolvedValue(
+      new Response('<html>login page</html>', {
+        status: 200,
+        headers: { 'Content-Type': 'text/html' },
+      }),
+    )
 
-    // Direct fetch returns 200 text/html -> proxy retry returns 200 image/png
-    const fakeFetchHtml = vi.fn().mockImplementation((input: string) => {
-      callCount++
-      if (callCount === 1) {
-        return Promise.resolve(
-          new Response('<html>login page</html>', {
-            status: 200,
-            headers: { 'Content-Type': 'text/html' },
-          }),
-        )
-      }
-      expect(input).toBe('/api/image-proxy?url=https%3A%2F%2Fexample.com%2Fpic.png')
-      return Promise.resolve(
-        new Response(expectedBlob, {
-          status: 200,
-          headers: { 'Content-Type': 'image/png' },
-        }),
-      )
-    })
+    await expect(
+      fetchImageFromUrl('https://example.com/pic.png', fakeFetchHtml as typeof fetch),
+    ).rejects.toThrow('Response is not an image of an allowed type')
+    expect(fakeFetchHtml).toHaveBeenCalledTimes(1)
 
-    const blob = await fetchImageFromUrl('https://example.com/pic.png', fakeFetchHtml as typeof fetch)
-    expect(blob.type).toBe('image/png')
-    expect(callCount).toBe(2)
+    // Direct fetch returns 500 server error -> errors without calling proxy (assert fetch called once)
+    const fakeFetch500 = vi.fn().mockResolvedValue(
+      new Response('Server Error', { status: 500 }),
+    )
 
-    // Direct fetch returns 500 server error -> proxy retry returns 200 image/jpeg
-    let callCount500 = 0
-    const fakeFetch500 = vi.fn().mockImplementation((input: string) => {
-      callCount500++
-      if (callCount500 === 1) {
-        return Promise.resolve(new Response('Server Error', { status: 500 }))
-      }
-      return Promise.resolve(
-        new Response(new Blob([new Uint8Array([4, 5])], { type: 'image/jpeg' }), {
-          status: 200,
-          headers: { 'Content-Type': 'image/jpeg' },
-        }),
-      )
-    })
-
-    const blob2 = await fetchImageFromUrl('https://example.com/pic.jpg', fakeFetch500 as typeof fetch)
-    expect(blob2.type).toBe('image/jpeg')
-    expect(callCount500).toBe(2)
+    await expect(
+      fetchImageFromUrl('https://example.com/pic.jpg', fakeFetch500 as typeof fetch),
+    ).rejects.toThrow('Image request failed (500)')
+    expect(fakeFetch500).toHaveBeenCalledTimes(1)
   })
 
   it('exports IMAGE_SOURCE_TYPES and rejects SVG in fetchImageFromUrl', async () => {

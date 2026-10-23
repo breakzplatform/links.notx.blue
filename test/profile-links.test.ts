@@ -5,11 +5,14 @@ import {
   deleteLink,
   generateTid,
   insertLink,
+  InvalidLinkError,
   loadLinks,
   moveLink,
+  PartialSaveError,
   removeLink,
   reorderLinks,
   replaceLink,
+  restoreLink,
   saveLink,
   TooManyLinksError,
   updateProfileLinks,
@@ -102,7 +105,7 @@ function makeFakeXrpc(did: Did = 'did:plc:alice123'): {
       }
       return { uri: `at://${did}/${collection}/${rkey}`, cid }
     },
-    async deleteRecord(collection: string, rkey: string, opts = {}) {
+    async deleteRecord(collection: string, rkey: string, opts?: { swapRecord?: string }) {
       calls.push({ method: 'deleteRecord', args: [collection, rkey, opts] })
       if (collection === LINK_COLLECTION) {
         state.links.delete(rkey)
@@ -837,6 +840,142 @@ describe('profile-links: saveLink call order and behavior', () => {
       saveLink(xrpc, { url: 'https://example.com', icon: badBlob }),
     ).rejects.toThrow(/Invalid icon: bad-type/)
   })
+
+  it('InvalidLinkError carries issues for a bad URL', async () => {
+    const { xrpc } = makeFakeXrpc()
+
+    try {
+      await saveLink(xrpc, { url: 'http://example.com' })
+      expect.unreachable('Should have thrown InvalidLinkError for http URL')
+    } catch (error) {
+      expect(error).toBeInstanceOf(InvalidLinkError)
+      expect((error as InvalidLinkError).issues).toContain('insecure')
+    }
+
+    try {
+      await saveLink(xrpc, { url: 'https://bit.ly/test' })
+      expect.unreachable('Should have thrown InvalidLinkError for shortener URL')
+    } catch (error) {
+      expect(error).toBeInstanceOf(InvalidLinkError)
+      expect((error as InvalidLinkError).issues).toContain('shortener')
+    }
+
+    try {
+      await saveLink(xrpc, { url: 'invalid-url' })
+      expect.unreachable('Should have thrown InvalidLinkError for invalid URL')
+    } catch (error) {
+      expect(error).toBeInstanceOf(InvalidLinkError)
+      expect((error as InvalidLinkError).issues.length).toBeGreaterThan(0)
+    }
+  })
+
+  it('saveLink emits onProgress in correct order (upload only for Blob icon, link, profile)', async () => {
+    const { xrpc } = makeFakeXrpc()
+
+    // 1. With Blob icon
+    const blobProgress: [string, string][] = []
+    const blob = new Blob([new Uint8Array([1, 2, 3])], { type: 'image/png' })
+    await saveLink(xrpc, {
+      url: 'https://example.com/blob-icon',
+      title: 'Blob Icon',
+      icon: blob,
+      onProgress: (step, state) => blobProgress.push([step, state]),
+    })
+    expect(blobProgress).toEqual([
+      ['upload', 'start'],
+      ['upload', 'done'],
+      ['link', 'start'],
+      ['link', 'done'],
+      ['profile', 'start'],
+      ['profile', 'done'],
+    ])
+
+    // 2. Without icon: upload is omitted
+    const noIconProgress: [string, string][] = []
+    await saveLink(xrpc, {
+      url: 'https://example.com/no-icon',
+      title: 'No Icon',
+      onProgress: (step, state) => noIconProgress.push([step, state]),
+    })
+    expect(noIconProgress).toEqual([
+      ['link', 'start'],
+      ['link', 'done'],
+      ['profile', 'start'],
+      ['profile', 'done'],
+    ])
+
+    // 3. With BlobRef icon: upload is omitted
+    const blobRefProgress: [string, string][] = []
+    const existingBlobRef: BlobRef = {
+      $type: 'blob',
+      ref: { $link: 'bafkreiexistingcid' },
+      mimeType: 'image/png',
+      size: 100,
+    }
+    await saveLink(xrpc, {
+      url: 'https://example.com/blobref-icon',
+      title: 'BlobRef Icon',
+      icon: existingBlobRef,
+      onProgress: (step, state) => blobRefProgress.push([step, state]),
+    })
+    expect(blobRefProgress).toEqual([
+      ['link', 'start'],
+      ['link', 'done'],
+      ['profile', 'start'],
+      ['profile', 'done'],
+    ])
+  })
+
+  it('throws PartialSaveError when updateProfileLinks fails after link putRecord, and retry reuses rkey without new TID', async () => {
+    const { xrpc, state } = makeFakeXrpc()
+
+    const originalPutRecord = xrpc.putRecord.bind(xrpc)
+    let failProfile = true
+    xrpc.putRecord = vi.fn().mockImplementation(async (collection, rkey, record, opts) => {
+      if (collection === PROFILE_COLLECTION && failProfile) {
+        throw new Error('Profile update failure')
+      }
+      return originalPutRecord(collection, rkey, record, opts)
+    })
+
+    let caughtError: PartialSaveError | undefined
+    try {
+      await saveLink(xrpc, {
+        url: 'https://example.com',
+        title: 'Example',
+      })
+      expect.unreachable('Expected PartialSaveError')
+    } catch (error) {
+      expect(error).toBeInstanceOf(PartialSaveError)
+      caughtError = error as PartialSaveError
+    }
+
+    expect(caughtError).toBeDefined()
+    expect(caughtError!.rkey).toBeDefined()
+    expect(caughtError!.ref).toBeDefined()
+    expect(caughtError!.ref.uri).toBe(`at://${xrpc.did}/${LINK_COLLECTION}/${caughtError!.rkey}`)
+    expect(caughtError!.cause).toBeInstanceOf(Error)
+    expect((caughtError!.cause as Error).message).toBe('Profile update failure')
+
+    // Link record exists in state
+    expect(state.links.has(caughtError!.rkey)).toBe(true)
+    expect(state.links.size).toBe(1)
+
+    // Retry with caughtError.rkey
+    failProfile = false
+    const retriedRef = await saveLink(xrpc, {
+      rkey: caughtError!.rkey,
+      url: 'https://example.com',
+      title: 'Example',
+    })
+
+    expect(retriedRef.uri).toBe(`at://${xrpc.did}/${LINK_COLLECTION}/${caughtError!.rkey}`)
+    expect(state.links.size).toBe(1)
+    expect(state.links.has(caughtError!.rkey)).toBe(true)
+    expect(state.profile?.value.links).toEqual([
+      { uri: retriedRef.uri, cid: retriedRef.cid },
+    ])
+  })
 })
 
 describe('profile-links: deleteLink and reorderLinks', () => {
@@ -885,6 +1024,95 @@ describe('profile-links: deleteLink and reorderLinks', () => {
     )
   })
 
+  it('deleteLink with cid sends swapRecord', async () => {
+    const { xrpc, state, calls } = makeFakeXrpc('did:plc:alice')
+    const rkey = 'link1'
+    const uri = `at://${xrpc.did}/${LINK_COLLECTION}/${rkey}`
+    state.profile = {
+      cid: 'prof1',
+      value: {
+        $type: 'app.bsky.actor.profile',
+        links: [{ uri, cid: 'cid1' }],
+      },
+    }
+    state.links.set(rkey, {
+      cid: 'cid1',
+      value: { $type: 'app.bsky.actor.link', url: 'https://example.com', createdAt: '2024-01-01' },
+    })
+
+    await deleteLink(xrpc, uri, 'cid1')
+
+    const deleteCall = calls.find(
+      c => c.method === 'deleteRecord' && c.args[0] === LINK_COLLECTION && c.args[1] === rkey,
+    )
+    expect(deleteCall).toBeDefined()
+    expect(deleteCall?.args[2]).toEqual({ swapRecord: 'cid1' })
+  })
+
+  it('deleteLink without cid sends no swapRecord', async () => {
+    const { xrpc, state, calls } = makeFakeXrpc('did:plc:alice')
+    const rkey = 'link1'
+    const uri = `at://${xrpc.did}/${LINK_COLLECTION}/${rkey}`
+    state.profile = {
+      cid: 'prof1',
+      value: {
+        $type: 'app.bsky.actor.profile',
+        links: [{ uri, cid: 'cid1' }],
+      },
+    }
+    state.links.set(rkey, {
+      cid: 'cid1',
+      value: { $type: 'app.bsky.actor.link', url: 'https://example.com', createdAt: '2024-01-01' },
+    })
+
+    await deleteLink(xrpc, uri)
+
+    const deleteCall = calls.find(
+      c => c.method === 'deleteRecord' && c.args[0] === LINK_COLLECTION && c.args[1] === rkey,
+    )
+    expect(deleteCall).toBeDefined()
+    expect(deleteCall?.args[2]).toBeUndefined()
+  })
+
+  it('deleteLink maps InvalidSwap to ConcurrentEditError', async () => {
+    const { xrpc, state } = makeFakeXrpc('did:plc:alice')
+    const rkey = 'link1'
+    const uri = `at://${xrpc.did}/${LINK_COLLECTION}/${rkey}`
+    state.profile = {
+      cid: 'prof1',
+      value: {
+        $type: 'app.bsky.actor.profile',
+        links: [{ uri, cid: 'cid1' }],
+      },
+    }
+    state.links.set(rkey, {
+      cid: 'cid1',
+      value: { $type: 'app.bsky.actor.link', url: 'https://example.com', createdAt: '2024-01-01' },
+    })
+
+    xrpc.deleteRecord = vi.fn().mockRejectedValue(new XrpcError(400, 'InvalidSwap', 'Swap mismatch'))
+
+    await expect(deleteLink(xrpc, uri, 'outdatedCid')).rejects.toThrow(ConcurrentEditError)
+  })
+
+  it('deleteLink treats RecordNotFound as success', async () => {
+    const { xrpc, state } = makeFakeXrpc('did:plc:alice')
+    const rkey = 'link1'
+    const uri = `at://${xrpc.did}/${LINK_COLLECTION}/${rkey}`
+    state.profile = {
+      cid: 'prof1',
+      value: {
+        $type: 'app.bsky.actor.profile',
+        links: [{ uri, cid: 'cid1' }],
+      },
+    }
+
+    xrpc.deleteRecord = vi.fn().mockRejectedValue(new XrpcError(404, 'RecordNotFound', 'Record not found'))
+
+    await expect(deleteLink(xrpc, uri, 'cid1')).resolves.toBeUndefined()
+    expect(state.profile?.value.links).toBeUndefined()
+  })
+
   it('reorderLinks updates profile link order', async () => {
     const { xrpc, state } = makeFakeXrpc('did:plc:alice')
     const uri1 = `at://${xrpc.did}/${LINK_COLLECTION}/1`
@@ -906,6 +1134,146 @@ describe('profile-links: deleteLink and reorderLinks', () => {
     const reordered = await reorderLinks(xrpc, uri1, 2)
     expect(reordered.map(r => r.uri)).toEqual([uri2, uri3, uri1])
     expect(state.profile?.value.links?.map(r => r.uri)).toEqual([uri2, uri3, uri1])
+  })
+})
+
+describe('profile-links: restoreLink', () => {
+  it('throws when the record is missing', async () => {
+    const { xrpc } = makeFakeXrpc('did:plc:alice')
+    const uri = `at://${xrpc.did}/${LINK_COLLECTION}/nonexistent`
+    await expect(restoreLink(xrpc, uri)).rejects.toThrow('missing')
+  })
+
+  it('rejects invalid URL (http, shortener, non-string url) with InvalidLinkError and no writes', async () => {
+    const { xrpc, state, calls } = makeFakeXrpc('did:plc:alice')
+
+    // 1. http URL
+    state.links.set('httpLink', {
+      cid: 'cidHttp',
+      value: { $type: 'app.bsky.actor.link', url: 'http://insecure.example.com', createdAt: '2024-01-01' },
+    })
+    const httpUri = `at://${xrpc.did}/${LINK_COLLECTION}/httpLink`
+    const callsBeforeHttp = calls.length
+    try {
+      await restoreLink(xrpc, httpUri)
+      expect.unreachable('Should have thrown InvalidLinkError for http URL')
+    } catch (error) {
+      expect(error).toBeInstanceOf(InvalidLinkError)
+      expect((error as InvalidLinkError).issues).toContain('insecure')
+    }
+    expect(calls.slice(callsBeforeHttp).some(c => c.method === 'putRecord' || c.method === 'deleteRecord')).toBe(false)
+
+    // 2. shortener URL
+    state.links.set('shortLink', {
+      cid: 'cidShort',
+      value: { $type: 'app.bsky.actor.link', url: 'https://bit.ly/xyz', createdAt: '2024-01-01' },
+    })
+    const shortUri = `at://${xrpc.did}/${LINK_COLLECTION}/shortLink`
+    const callsBeforeShort = calls.length
+    try {
+      await restoreLink(xrpc, shortUri)
+      expect.unreachable('Should have thrown InvalidLinkError for shortener URL')
+    } catch (error) {
+      expect(error).toBeInstanceOf(InvalidLinkError)
+      expect((error as InvalidLinkError).issues).toContain('shortener')
+    }
+    expect(calls.slice(callsBeforeShort).some(c => c.method === 'putRecord' || c.method === 'deleteRecord')).toBe(false)
+
+    // 3. non-string URL
+    state.links.set('nonStringLink', {
+      cid: 'cidNonString',
+      value: { $type: 'app.bsky.actor.link', url: 12345 as unknown as string, createdAt: '2024-01-01' },
+    })
+    const nonStringUri = `at://${xrpc.did}/${LINK_COLLECTION}/nonStringLink`
+    const callsBeforeNonString = calls.length
+    try {
+      await restoreLink(xrpc, nonStringUri)
+      expect.unreachable('Should have thrown InvalidLinkError for non-string URL')
+    } catch (error) {
+      expect(error).toBeInstanceOf(InvalidLinkError)
+      expect((error as InvalidLinkError).issues.length).toBeGreaterThan(0)
+    }
+    expect(calls.slice(callsBeforeNonString).some(c => c.method === 'putRecord' || c.method === 'deleteRecord')).toBe(false)
+  })
+
+  it('is idempotent when uri is already in profile (replaces cid, no duplicate)', async () => {
+    const { xrpc, state } = makeFakeXrpc('did:plc:alice')
+    const uri = `at://${xrpc.did}/${LINK_COLLECTION}/link1`
+
+    state.profile = {
+      cid: 'prof1',
+      value: {
+        $type: 'app.bsky.actor.profile',
+        links: [
+          { uri: `at://${xrpc.did}/${LINK_COLLECTION}/other`, cid: 'cidOther' },
+          { uri, cid: 'oldCid' },
+        ],
+      },
+    }
+
+    state.links.set('link1', {
+      cid: 'newCid',
+      value: { $type: 'app.bsky.actor.link', url: 'https://example.com/1', createdAt: '2024-01-01' },
+    })
+
+    const links = await restoreLink(xrpc, uri)
+    expect(links).toHaveLength(2)
+    expect(links.filter(r => r.uri === uri)).toHaveLength(1)
+    expect(links.find(r => r.uri === uri)?.cid).toBe('newCid')
+    expect(state.profile?.value.links).toEqual([
+      { uri: `at://${xrpc.did}/${LINK_COLLECTION}/other`, cid: 'cidOther' },
+      { uri, cid: 'newCid' },
+    ])
+  })
+
+  it('inserts when absent', async () => {
+    const { xrpc, state } = makeFakeXrpc('did:plc:alice')
+    const uri = `at://${xrpc.did}/${LINK_COLLECTION}/link1`
+
+    state.profile = {
+      cid: 'prof1',
+      value: {
+        $type: 'app.bsky.actor.profile',
+        links: [{ uri: `at://${xrpc.did}/${LINK_COLLECTION}/other`, cid: 'cidOther' }],
+      },
+    }
+
+    state.links.set('link1', {
+      cid: 'cid1',
+      value: { $type: 'app.bsky.actor.link', url: 'https://example.com/1', createdAt: '2024-01-01' },
+    })
+
+    const links = await restoreLink(xrpc, uri)
+    expect(links).toHaveLength(2)
+    expect(links[1]).toEqual({ uri, cid: 'cid1' })
+    expect(state.profile?.value.links).toEqual([
+      { uri: `at://${xrpc.did}/${LINK_COLLECTION}/other`, cid: 'cidOther' },
+      { uri, cid: 'cid1' },
+    ])
+  })
+
+  it('throws TooManyLinksError when profile already has 10 links and record is absent', async () => {
+    const { xrpc, state } = makeFakeXrpc('did:plc:alice')
+    const tenLinks: StrongRef[] = Array.from({ length: 10 }, (_, i) => ({
+      uri: `at://${xrpc.did}/${LINK_COLLECTION}/link${i}`,
+      cid: `cid${i}`,
+    }))
+    state.profile = {
+      cid: 'prof1',
+      value: {
+        $type: 'app.bsky.actor.profile',
+        links: tenLinks,
+      },
+    }
+
+    state.links.set('link11', {
+      cid: 'cid11',
+      value: { $type: 'app.bsky.actor.link', url: 'https://example.com/11', createdAt: '2024-01-01' },
+    })
+    const uri = `at://${xrpc.did}/${LINK_COLLECTION}/link11`
+
+    await expect(restoreLink(xrpc, uri)).rejects.toThrow(TooManyLinksError)
+    expect(state.profile?.value.links).toHaveLength(10)
   })
 })
 

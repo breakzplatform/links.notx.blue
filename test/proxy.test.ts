@@ -1,3 +1,5 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import workerApp from '../worker/index'
 import proxyDefault, { proxyImage, validateProxyTarget } from '../worker/proxy'
@@ -766,6 +768,20 @@ describe('proxy: fetch handler with mocked global fetch', () => {
 
       expect(res.status).toBe(429)
       expect(mockLimiter.limit).toHaveBeenCalled()
+    })
+  })
+
+  describe('dependency constraints', () => {
+    it('asserts worker/proxy.ts does not import src/lib/rules', () => {
+      const proxyFilePath = path.resolve(__dirname, '../worker/proxy.ts')
+      const content = fs.readFileSync(proxyFilePath, 'utf-8')
+      const lines = content.split('\n')
+      const importLines = lines.filter(line => /^\s*import\b/.test(line))
+
+      for (const line of importLines) {
+        expect(line).not.toMatch(/['"].*rules.*['"]/)
+      }
+      expect(content).not.toContain('src/lib/rules')
     })
   })
 })

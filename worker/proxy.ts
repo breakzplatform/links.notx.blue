@@ -1,7 +1,6 @@
 import { imageTargetError } from '../src/lib/image/target'
-import { IMAGE_SOURCE_TYPES } from '../src/lib/image/source'
 const MAX_BYTES = 2 * 1024 * 1024
-const IMAGE_TYPES = new Set<string>(IMAGE_SOURCE_TYPES)
+const IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif', 'image/x-icon', 'image/vnd.microsoft.icon'])
 
 export function validateProxyTarget(input: string, selfHost: string): { ok: true; url: URL } | { ok: false; code: string } {
   let url: URL

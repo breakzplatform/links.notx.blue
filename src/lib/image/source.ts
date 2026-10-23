@@ -48,7 +48,7 @@ export async function fetchImageFromUrl(url: string, fetchImpl: typeof fetch = f
   } catch (error) {
     if (!(error instanceof TypeError)) throw error
   }
-  if (!response?.ok || !allowedType(responseType(response))) {
+  if (!response || response.type === 'opaque') {
     await response?.body?.cancel()
     response = await fetchImpl(`/api/image-proxy?url=${encodeURIComponent(canonical)}`)
   }
