@@ -93,6 +93,7 @@ h1[tabindex="-1"]:focus { outline: none; }
   padding-top: var(--space-6);
   border-top: 0;
   justify-content: center;
+  gap: var(--space-3) var(--space-8);
   text-align: center;
 }
 .site-foot a { text-transform: none; }

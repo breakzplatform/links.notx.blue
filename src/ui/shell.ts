@@ -64,9 +64,7 @@ export function createShell(root: HTMLElement): Shell {
   )
   const footer = el('footer', { className: 'site-foot' },
     el('span', {}, madeBy, ' ', el('a', { attrs: { href: AUTHOR_PROFILE }, text: '@joseli.to' })),
-    el('span', { attrs: { 'aria-hidden': 'true' } }, '·'),
     privacy,
-    el('span', { attrs: { 'aria-hidden': 'true' } }, '·'),
     abuse,
   )
 
