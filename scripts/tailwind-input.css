@@ -1,0 +1,45 @@
+/* Tailwind v4 entry point for links.notx.blue. Compiled by scripts/build-css.sh
+   into src/assets/tailwind-<version>.css, which src/main.ts imports ahead of
+   src/styles.css (the project's own components). Vite then bundles both into
+   one hashed stylesheet.
+
+   scripts/ds/ is a verbatim copy of the joseli.to design system (skill
+   `joseli-to-ds`): never edit it here, replace the directory. The token files
+   are imported individually rather than through ds/styles.css so Tailwind's
+   bundler inlines them; base.css comes after Tailwind's preflight because it
+   has to win over it. components.css is included because the app builds its
+   forms, panels and buttons from the system's class-based components. */
+/* source(none) turns off v4's automatic source detection, which would scan
+   this directory and treat the vendored CSS as content. The @source lines
+   below are the only source of truth. */
+@import "tailwindcss" source(none);
+
+@import "./ds/tokens/fonts.css";
+@import "./ds/tokens/colors.css";
+@import "./ds/tokens/dark.css";
+@import "./ds/tokens/terminal.css";
+@import "./ds/tokens/typography.css";
+@import "./ds/tokens/spacing.css";
+@import "./ds/tokens/borders.css";
+@import "./ds/tokens/halftone.css";
+@import "./ds/tokens/base.css";
+@import "./ds/tokens/neo.css";
+@import "./ds/components.css";
+
+@import "./tailwind-theme.css";
+
+/* The DOM is built in TypeScript, so class names live in src/ as well as in
+   the HTML entry points. */
+@source "../index.html";
+@source "../privacy.html";
+@source "../404.html";
+@source "../src/**/*.ts";
+
+/* links.notx.blue runs on the system's sky ink. One rule picks it for every
+   theme: it sits on `:root, [data-theme]` after the imports, so it beats each
+   theme block's default project ink and resolves to that theme's value. */
+:root,
+[data-theme] {
+  --project-ink: var(--ink-sky);
+  --project-ink-contrast: var(--on-sky);
+}

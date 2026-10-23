@@ -1,20 +1,19 @@
-@import './ds/styles.css';
+/* links.notx.blue components, built on the joseli.to design system (v2,
+   "retícula") that scripts/tailwind-input.css compiles into
+   src/assets/tailwind-*.css, imported just before this file. Every colour,
+   rule, gap and font is a token; the halftone shadow, press and lift come from
+   the system's .cast / .press / .lift classes in the markup. */
 
-/* Project ink: sky, set on every theme root so each theme resolves its own sky. */
 :root, [data-theme] {
-  --project-ink: var(--ink-sky);
-  --project-ink-contrast: var(--on-sky);
   --target: 44px;
 }
 
 h1, h2, p { margin: 0; }
 h2 { font-size: var(--text-display-4); line-height: 1.15; }
 
-h1:focus { outline: none; }
-h1:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 1px;
-}
+/* Headings take focus only programmatically, after a view change, so screen
+   readers start there. They are not controls, so no ring. */
+h1[tabindex="-1"]:focus { outline: none; }
 
 [hidden] { display: none !important; }
 
@@ -45,57 +44,58 @@ h1:focus-visible {
 .wrap {
   max-width: calc(720px + 2 * var(--page-pad-x));
   margin-inline: auto;
-  padding: var(--space-8) var(--page-pad-x) var(--page-pad-bottom);
+  padding: var(--space-6) var(--page-pad-x) var(--page-pad-bottom);
 }
 
 .stack { display: flex; flex-direction: column; gap: var(--space-6); }
 .stack > * { min-width: 0; }
 
-/* Masthead: wordmark, then language and theme. The double rule is the DS
-   masthead: 3px heavy with a 1px rule under it. */
-.site-head {
-  position: relative;
-  margin-bottom: var(--space-10);
-  padding-bottom: var(--space-6);
-}
-.site-head::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  border-top: 1px solid var(--border-strong);
-}
-.brand {
-  display: inline-flex;
-  flex-direction: column;
-  gap: var(--space-3);
+/* The wordmark: CMU Serif bold, "links" on an ink block tilted like a sticker
+   (.ink-block.tilt) and ".notx.blue" as plain type. It runs past the top of
+   the type scale on purpose: the masthead is the only display type the site
+   has, and it has to fit 15 characters on a phone. */
+.wordmark-link {
+  display: block;
+  margin: var(--space-10) 0 var(--space-4);
+  font: var(--weight-display) clamp(32px, 10vw, 76px)/1.1 var(--font-display);
+  letter-spacing: var(--tracking-display);
   color: var(--text-1);
+  text-align: center;
   text-decoration: none;
+  white-space: nowrap;
 }
-.brand:visited, .brand:hover, .brand:active {
+.wordmark-link:visited, .wordmark-link:hover, .wordmark-link:active {
   color: var(--text-1);
   background: transparent;
+  text-decoration: none;
 }
-.brand:hover .brand-name { text-decoration: underline; }
-.brand .wordmark { font-size: clamp(28px, 8vw, 40px); }
-.brand-name {
+.wordmark-link:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 4px; }
+
+/* Meta lines: typewriter, uppercase, tracked out. */
+.meta-line {
   font: var(--type-meta);
   letter-spacing: var(--tracking-meta);
   text-transform: uppercase;
   color: var(--text-3);
 }
-.tld { margin-left: 0.04em; }
 
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: var(--space-6);
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--target);
 }
-.language { display: flex; flex-direction: column; }
-.language .field select { padding-block: 6px; }
-.theme-switch { min-height: var(--target); }
+
+.masthead { margin-bottom: var(--space-10); }
+
+.site-foot {
+  margin-top: var(--space-11);
+  padding-top: var(--space-6);
+  border-top: 0;
+  justify-content: center;
+  text-align: center;
+}
+.site-foot a { text-transform: none; }
 
 .status {
   margin-bottom: var(--space-6);

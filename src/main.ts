@@ -1,3 +1,4 @@
+import './assets/tailwind-4.3.3.css'
 import './styles.css'
 import { initLocale, subscribeLocale } from './i18n'
 import { startApp } from './ui/app'

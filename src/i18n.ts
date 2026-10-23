@@ -7,9 +7,10 @@ type Copy = Record<Locale, string>
 const STORAGE_KEY = 'links.locale'
 
 const messages = {
-  appTitle: { 'pt-BR': 'Ícones de links', en: 'Link icons' },
-  privacyDocumentTitle: { 'pt-BR': 'Privacidade — Ícones de links', en: 'Privacy — Link icons' },
-  languageLabel: { 'pt-BR': 'Idioma', en: 'Language' },
+  appTitle: { 'pt-BR': 'links.notx.blue — Ícones próprios nos links do Bluesky', en: 'links.notx.blue — Custom icons for Bluesky profile links' },
+  privacyDocumentTitle: { 'pt-BR': 'Privacidade — links.notx.blue', en: 'Privacy — links.notx.blue' },
+  tagline: { 'pt-BR': 'Ícones próprios nos links do perfil do Bluesky', en: 'Custom icons for Bluesky profile links' },
+  madeBy: { 'pt-BR': 'Feito por', en: 'Made by' },
   skip: { 'pt-BR': 'Ir para o conteúdo', en: 'Skip to content' },
   privacyLink: { 'pt-BR': 'Privacidade', en: 'Privacy' },
   themeLight: { 'pt-BR': 'claro', en: 'light' },
@@ -28,6 +29,7 @@ const messages = {
   },
   handleLabel: { 'pt-BR': 'Handle', en: 'Handle' },
   handleHint: { 'pt-BR': 'nome.bsky.social ou seu domínio', en: 'name.bsky.social or your domain' },
+  signInTitle: { 'pt-BR': 'Entrar com o Bluesky', en: 'Sign in with Bluesky' },
   signIn: { 'pt-BR': 'Entrar', en: 'Sign in' },
   signInBsky: { 'pt-BR': 'Entrar com bsky.social', en: 'Sign in with bsky.social' },
   handleRequired: { 'pt-BR': 'Informe o handle ou use o botão do bsky.social.', en: 'Enter a handle, or use the bsky.social button.' },
@@ -246,7 +248,13 @@ export function initLocale(): void {
   } catch {
     stored = null
   }
-  apply(stored === 'en' ? 'en' : 'pt-BR')
+  apply(stored === 'en' || stored === 'pt-BR' ? stored : detectLocale())
+}
+
+// Same rule as down.blue: a stored choice wins, then Portuguese for any pt-*
+// browser, English for everything else.
+function detectLocale(): Locale {
+  return navigator.language.toLowerCase().startsWith('pt') ? 'pt-BR' : 'en'
 }
 
 export function setLocale(next: Locale): void {

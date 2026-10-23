@@ -19,27 +19,17 @@ export type Shell = {
 
 export function createShell(root: HTMLElement): Shell {
   const skip = el('a', { className: 'skip', attrs: { href: '#content' } })
-  const brandName = el('span', { className: 'brand-name' })
-  const brand = el('a', { className: 'brand', attrs: { href: '/' } },
-    el('span', { className: 'wordmark', attrs: { 'aria-hidden': 'true' } },
-      'links',
-      el('span', { className: 'tld ink-block tilt' }, '.notx.blue'),
-    ),
-    brandName,
-  )
-  const languageLabel = el('label', { className: 'label', attrs: { for: 'language' } })
-  const language = el('select', { attrs: { id: 'language' } },
-    el('option', { attrs: { value: 'pt-BR' }, text: 'Português' }),
-    el('option', { attrs: { value: 'en' }, text: 'English' }),
-  )
-  language.value = getLocale()
-  language.addEventListener('change', () => {
-    const next: Locale = language.value === 'en' ? 'en' : 'pt-BR'
-    setLocale(next)
+  const tagline = el('p', { className: 'meta-line text-center' })
+
+  // Like down.blue, the language button names where a tap takes you: the other
+  // language, in that language.
+  const language = el('button', { className: 'btn sm cast press toggle', attrs: { type: 'button', id: 'language' } })
+  language.addEventListener('click', () => {
+    setLocale(otherLocale(getLocale()))
   })
 
   const themeLabel = el('span')
-  const theme = el('button', { className: 'btn sm cast press theme-switch', attrs: { type: 'button', id: 'theme' } },
+  const theme = el('button', { className: 'btn sm cast press toggle theme-switch', attrs: { type: 'button', id: 'theme' } },
     icon('sun'),
     icon('moon'),
     icon('terminal'),
@@ -60,22 +50,24 @@ export function createShell(root: HTMLElement): Shell {
 
   const status = el('p', { className: 'status', attrs: { role: 'status' } })
   const main = el('main', { attrs: { id: 'content' } })
+  const madeBy = el('span')
   const privacy = el('a')
   const abuse = el('a', { attrs: { href: `mailto:${ABUSE_CONTACT}` }, text: ABUSE_CONTACT })
 
-  const header = el('header', { className: 'site-head' },
-    brand,
-    el('div', { className: 'controls' },
-      el('div', { className: 'language' },
-        languageLabel,
-        el('span', { className: 'field cast' }, language),
-      ),
-      theme,
+  const header = el('header', { className: 'masthead' },
+    el('div', { className: 'flex flex-wrap items-center justify-end gap-2' }, language, theme),
+    el('a', { className: 'wordmark-link', attrs: { href: '/', 'aria-label': 'links.notx.blue' } },
+      el('span', { className: 'ink-block tilt' }, 'links'),
+      '.notx.blue',
     ),
+    tagline,
   )
   const footer = el('footer', { className: 'site-foot' },
-    el('span', {}, 'links.notx.blue'),
-    el('span', { className: 'site-foot-links' }, privacy, abuse),
+    el('span', {}, madeBy, ' ', el('a', { attrs: { href: AUTHOR_PROFILE }, text: '@joseli.to' })),
+    el('span', { attrs: { 'aria-hidden': 'true' } }, '·'),
+    privacy,
+    el('span', { attrs: { 'aria-hidden': 'true' } }, '·'),
+    abuse,
   )
 
   root.replaceChildren(
@@ -88,11 +80,13 @@ export function createShell(root: HTMLElement): Shell {
       const privacyPage = /\/privacy(\.html)?\/?$/.test(location.pathname)
       document.title = privacyPage ? t('privacyDocumentTitle') : t('appTitle')
       setText(skip, t('skip'))
-      setText(brandName, t('appTitle'))
-      setText(languageLabel, t('languageLabel'))
+      setText(tagline, t('tagline'))
+      setText(madeBy, t('madeBy'))
+      const other = otherLocale(getLocale())
+      setText(language, other === 'en' ? 'english' : 'português')
+      language.lang = other
       setText(privacy, t('privacyLink'))
       privacy.href = privacyHref()
-      if (language.value !== getLocale()) language.value = getLocale()
       syncTheme()
     },
     setStatus(message) {
@@ -104,6 +98,12 @@ export function createShell(root: HTMLElement): Shell {
   }
   shell.refresh()
   return shell
+}
+
+const AUTHOR_PROFILE = 'https://bsky.app/profile/joseli.to'
+
+function otherLocale(locale: Locale): Locale {
+  return locale === 'en' ? 'pt-BR' : 'en'
 }
 
 function privacyHref(): string {
