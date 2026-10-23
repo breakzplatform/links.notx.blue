@@ -2,7 +2,7 @@ import './editor.css'
 import type { Crop } from '../lib/image/crop'
 import { initialCrop, panCrop, zoomCrop } from '../lib/image/crop'
 import { encodeIcon } from '../lib/image/encode'
-import { PRESET_COLORS, drawPreset, firstGrapheme, type Preset } from '../lib/image/preset'
+import { PRESET_COLORS, detectPresetKind, drawPreset, firstGrapheme, type Preset } from '../lib/image/preset'
 import { IMAGE_SOURCE_TYPES, faviconUrl, fetchImageFromUrl, fileToBlob } from '../lib/image/source'
 import { loadTwemoji } from '../lib/image/twemoji'
 import {
@@ -168,6 +168,7 @@ export function renderEditor(
   },
 ): void {
   const state = options.state
+  state.presetKind = detectPresetKind(state.presetText)
   const editing = Boolean(options.link)
   const generation = editorGeneration
   window.clearTimeout(encodeTimer)
@@ -185,7 +186,7 @@ export function renderEditor(
   })
   urlInput.value = state.url
   const urlIssues = el('ul', { className: 'issues err', attrs: { id: 'url-issues' } })
-  const providerNote = el('p', { className: 'hint', attrs: { id: 'provider-note' } })
+  const providerNote = el('p', { className: 'db-note', attrs: { id: 'provider-note' } })
 
   const titleInput = el('input', {
     attrs: { id: 'link-title', type: 'text', autocomplete: 'off' },
@@ -225,8 +226,6 @@ export function renderEditor(
     attrs: { id: 'preset-text', type: 'text', autocomplete: 'off', maxlength: '16' },
   })
   presetInput.value = state.presetText
-  const letterRadio = el('input', { attrs: { type: 'radio', name: 'preset-kind', value: 'letter', id: 'kind-letter' } })
-  const emojiRadio = el('input', { attrs: { type: 'radio', name: 'preset-kind', value: 'emoji', id: 'kind-emoji' } })
   const colorInput = el('input', { attrs: { id: 'preset-color', type: 'color' } })
   colorInput.value = normalizeColor(state.presetColor)
   const swatchRadios: HTMLInputElement[] = []
@@ -247,7 +246,7 @@ export function renderEditor(
 
   const cropImg = el('img', { attrs: { alt: '' } })
   const cropStage = el('div', {
-    className: 'crop-stage screen',
+    className: 'crop-stage',
     attrs: { id: 'crop-stage', tabindex: '0', role: 'group', 'aria-describedby': 'crop-help' },
   }, cropImg)
   const zoom = el('input', {
@@ -284,7 +283,15 @@ export function renderEditor(
   const saveError = el('p', { className: 'alert', attrs: { role: 'alert' } })
   const saveButton = el('button', { className: 'btn primary lg cast press', attrs: { type: 'submit', id: 'save-link' } })
 
-  const back = el('button', { className: 'btn ghost', attrs: { type: 'button' }, text: t('back') })
+  const panelStatus = el('span', { className: 'db-panel-status' })
+  function setStatus(message: string): void {
+    setText(panelStatus, message)
+    options.onStatus(message)
+  }
+  const back = el('button', {
+    className: 'editor-back',
+    attrs: { type: 'button', 'aria-label': t('backToLinks') },
+  }, icon('arrow-left', 14), t('back'))
   back.addEventListener('click', () => {
     if (!state.saving) options.onBack()
   })
@@ -330,11 +337,6 @@ export function renderEditor(
       el('span', { className: 'field cast' }, presetInput),
       el('p', { className: 'hint', text: t('presetTextHint') }),
     ),
-    el('fieldset', { className: 'kinds' },
-      el('legend', { text: t('presetTextLabel') }),
-      el('label', { className: 'opt' }, letterRadio, el('span', { className: 'box', attrs: { 'aria-hidden': 'true' } }), el('span', { text: t('kindLetter') })),
-      el('label', { className: 'opt' }, emojiRadio, el('span', { className: 'box', attrs: { 'aria-hidden': 'true' } }), el('span', { text: t('kindEmoji') })),
-    ),
     el('fieldset', {},
       el('legend', { text: t('colorLegend') }),
       swatches,
@@ -367,27 +369,24 @@ export function renderEditor(
   })
 
   const form = el('form', { className: 'stack' },
-    el('div', { className: 'actions' }, back),
-    el('h1', {
-      className: 'headline',
-      attrs: { id: 'page-title', tabindex: '-1' },
-      text: editing ? t('editorEdit') : t('editorNew'),
-    }),
-    panel('panelAddress', 'panel-address',
-      el('div', { className: 'field-block' },
-        el('label', { className: 'label', attrs: { for: 'link-url' }, text: t('urlLabel') }),
-        el('span', { className: 'field cast' }, urlInput),
-        urlIssues,
-      ),
-      el('div', { className: 'field-block' },
-        el('label', { className: 'label', attrs: { for: 'link-title' } }, t('titleLabel'), ' ', titleCount),
-        el('span', { className: 'field cast' }, titleInput),
-        el('p', { className: 'hint', attrs: { id: 'title-hint' }, text: t('titleHint') }),
-        titleIssues,
-      ),
-      el('div', { className: 'note', attrs: { id: 'green-note' } },
-        el('p', { text: t('greenNote') }),
-        providerNote,
+    el('section', { className: 'db-panel cast', attrs: { 'aria-labelledby': 'page-title' } },
+      el('h1', {
+        className: 'db-panel-head editor-head',
+        attrs: { id: 'page-title', tabindex: '-1' },
+      }, back, el('span', { className: 'editor-title', text: editing ? t('editorEdit') : t('editorNew') }), panelStatus),
+      el('div', { className: 'panel-b stack' },
+        el('div', { className: 'field-block' },
+          el('label', { className: 'label', attrs: { for: 'link-url' }, text: t('urlLabel') }),
+          el('span', { className: 'field cast' }, urlInput),
+          urlIssues,
+          providerNote,
+        ),
+        el('div', { className: 'field-block' },
+          el('label', { className: 'label', attrs: { for: 'link-title' } }, t('titleLabel'), ' ', titleCount),
+          el('span', { className: 'field cast' }, titleInput),
+          el('p', { className: 'hint', attrs: { id: 'title-hint' }, text: t('titleHint') }),
+          titleIssues,
+        ),
       ),
     ),
     panel('panelIcon', 'panel-icon',
@@ -407,8 +406,6 @@ export function renderEditor(
         previewEmpty,
       ),
       previewMeta,
-    ),
-    panel('panelSave', 'panel-save',
       saveStatus,
       steps,
       saveError,
@@ -428,7 +425,7 @@ export function renderEditor(
       const letter = hostLetter(state.url)
       if (letter) {
         state.presetText = letter
-        state.presetKind = 'letter'
+        state.presetKind = detectPresetKind(letter)
       }
     }
     sync()
@@ -475,20 +472,9 @@ export function renderEditor(
   faviconButton.addEventListener('click', () => maybeLoadFavicon())
   presetInput.addEventListener('input', () => {
     state.presetText = presetInput.value
+    state.presetKind = detectPresetKind(state.presetText)
     state.presetTouched = true
     sync()
-    scheduleEncode()
-  })
-  letterRadio.addEventListener('change', () => {
-    if (!letterRadio.checked) return
-    state.presetKind = 'letter'
-    state.presetTouched = true
-    scheduleEncode()
-  })
-  emojiRadio.addEventListener('change', () => {
-    if (!emojiRadio.checked) return
-    state.presetKind = 'emoji'
-    state.presetTouched = true
     scheduleEncode()
   })
   for (const radio of swatchRadios) {
@@ -653,7 +639,7 @@ export function renderEditor(
       state.imageLoading = false
       state.imageError = imageErrorText(error)
       paintImageStatus()
-      options.onStatus(state.imageError)
+      setStatus(state.imageError)
       try { sync() } catch { /* the alert next to the icon source is already visible */ }
     }
   }
@@ -828,8 +814,6 @@ export function renderEditor(
     titleIssues.replaceChildren(...title.issues.map(issue => el('li', { text: titleIssueMessage(issue) })))
     titleInput.setAttribute('aria-invalid', title.issues.length > 0 ? 'true' : 'false')
     if (presetInput.value !== state.presetText) presetInput.value = state.presetText
-    letterRadio.checked = state.presetKind === 'letter'
-    emojiRadio.checked = state.presetKind === 'emoji'
     const color = normalizeColor(state.presetColor)
     for (const radio of swatchRadios) radio.checked = radio.value.toUpperCase() === color
 
@@ -879,7 +863,7 @@ export function renderEditor(
       setText(stepStates[name], t(STEP_KEYS[mark]))
     }
     form.setAttribute('aria-busy', state.saving || state.encoding ? 'true' : 'false')
-    options.onStatus(state.imageError || (state.saving ? t('saving') : state.imageLoading ? t('loadingImage') : ''))
+    setStatus(state.imageError || (state.saving ? t('saving') : state.imageLoading ? t('loadingImage') : ''))
     requestAnimationFrame(() => placeCrop())
   }
 
@@ -980,8 +964,8 @@ function imageErrorText(error: unknown): string {
 }
 
 function panel(title: MessageKey, id: string, ...body: Array<Node | null>): HTMLElement {
-  return el('section', { className: 'panel cast', attrs: { 'aria-labelledby': `${id}-title` } },
-    el('h2', { className: 'panel-h', attrs: { id: `${id}-title` }, text: t(title) }),
+  return el('section', { className: 'db-panel cast', attrs: { 'aria-labelledby': `${id}-title` } },
+    el('h2', { className: 'db-panel-head', attrs: { id: `${id}-title` }, text: t(title) }),
     el('div', { className: 'panel-b stack' }, ...body),
   )
 }

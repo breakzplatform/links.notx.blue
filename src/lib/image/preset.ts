@@ -3,6 +3,10 @@ export const PRESET_COLORS = ['#32BCAD', '#1185FE', '#000000', '#9333EA', '#DC26
 export function firstGrapheme(s: string): string {
   return new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(s)[Symbol.iterator]().next().value?.segment ?? ''
 }
+export function detectPresetKind(text: string): 'letter' | 'emoji' {
+  const grapheme = firstGrapheme(text)
+  return /[\p{Extended_Pictographic}\p{Emoji_Presentation}]|^[#*0-9]\uFE0F?\u20E3$/u.test(grapheme) ? 'emoji' : 'letter'
+}
 export function presetForeground(bg: string): string {
   if (!/^#[\da-f]{6}$/i.test(bg)) throw new Error('Expected a six-digit hex color')
   const linear = (value: number) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4

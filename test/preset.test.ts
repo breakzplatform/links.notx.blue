@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  detectPresetKind,
   drawPreset,
   firstGrapheme,
   PRESET_COLORS,
@@ -208,5 +209,15 @@ describe('preset: drawPreset', () => {
     expect(textCall?.args[0]).toBe('🚀')
     expect(props.font).toContain('62px')
     expect(props.font).toContain('Apple Color Emoji')
+  })
+})
+
+
+describe('preset: detectPresetKind', () => {
+  it.each(['', 'A', 'hello', '7', '#', '*', 'é', 'e\u0301', '漢字', 'A🎉'])('detects %j as a letter', text => {
+    expect(detectPresetKind(text)).toBe('letter')
+  })
+  it.each(['🎉', '👨‍💻', '👨‍👩‍👧‍👦', '👍🏽', '🇧🇷', '1️⃣', '#️⃣', '*⃣', '❤️', '☀️', '🎉A'])('detects %j as an emoji', text => {
+    expect(detectPresetKind(text)).toBe('emoji')
   })
 })
