@@ -8,7 +8,7 @@ Made by [@joseli.to](https://bsky.app/profile/joseli.to).
 
 ## Using it
 
-Sign in with your handle (or with the bsky.social button), and the page lists the links on your profile. For each one you can:
+Sign in with Bluesky, or with an account on another AT Protocol server (handle or server address), and the page lists the links on your profile. For each one you can:
 
 - **Edit** the address, the title and the icon.
 - **Reorder** it, **remove** it from the profile, or **add** a new link (up to 10).
@@ -25,7 +25,7 @@ Bluesky launched profile links on 2026-10-22. Each link is an `app.bsky.actor.li
 1. **Sign-in** is OAuth with `@atproto/oauth-client-browser` (public client, DPoP, PKCE). Tokens stay in the browser's IndexedDB. The client metadata is served at `/client-metadata.json` by a Netlify function that builds it from the requesting origin, so deploy previews can sign in too.
 2. **The scope** is `atproto repo:app.bsky.actor.link repo:app.bsky.actor.profile?action=create&action=update blob?accept=image/png&accept=image/jpeg&accept=image/webp`. It is narrower than the `app.bsky.authManageProfile` permission set, which also grants status and notification declaration writes. Reads use public endpoints, so no `rpc:` scope is needed.
 3. **Saving** is `uploadBlob`, then `putRecord` for the link (a TID rkey when new), then `putRecord` for the profile with `swapRecord` (CID). Only the profile's `links` field changes; everything else round-trips byte for byte. If another client edits the profile in between, the operation is redone on the new record, up to 3 attempts.
-4. **Validation** matches Bluesky (`social-app` and the AppView): https only, no shorteners, no blocked domains, title up to 40 graphemes / 320 bytes, icon PNG/JPEG/WebP up to 100,000 bytes, at most 10 links.
+4. **Validation** matches Bluesky (`social-app` and the AppView): https only, no shorteners (the file and link hosts Bluesky blocked before 2026-10-23 are in that list now; there is no hostname blocklist), title up to 40 graphemes / 320 bytes, icon PNG/JPEG/WebP up to 100,000 bytes, at most 10 links. All of it reads the address as typed and never follows redirects. Bluesky's own app also asks its Safelink service about new links; this site does not.
 5. **Icons** are cropped and encoded in a `<canvas>` at 256 px, dropping to 192 or 128 px when needed to fit the limit.
 6. **The image proxy** at `/api/image-proxy` is the only server code: a Netlify Function (`netlify/functions/image-proxy.ts`) around the shared handler in `server/proxy.ts`. It fetches the image URLs and favicons that browsers cannot read cross-origin. It is stateless and keeps no logs; it allows https only, with SSRF guards (no IP literals, private ranges, odd ports or credentials), a 2 MB cap and image types only (checked against magic bytes). It only answers same-origin requests, and Netlify rate-limits it to 120 requests per 60 s per client IP (`config.rateLimit`), high enough for many users behind one mobile carrier IP.
 
