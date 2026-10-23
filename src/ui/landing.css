@@ -1,0 +1,13 @@
+.signin-panel { margin: var(--space-12) 0 var(--space-6); }
+.signin-body { display: grid; gap: var(--space-6); padding: var(--space-6); }
+.signin-atmosphere { font: var(--type-dek); color: var(--text-1); }
+.signin-choices { display: grid; gap: var(--space-6); grid-template-columns: minmax(0, 1fr); }
+.signin-choices .db-btn, .signin-form .db-btn { min-height: 56px; }
+.signin-choices .db-btn { width: 100%; font-size: var(--text-body); }
+.signin-form { display: grid; gap: var(--space-4); margin: 0; }
+.signin-input-row { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.signin-input-row .db-field { flex: 1; min-width: 140px; }
+.signin-status { min-height: 1.5em; }
+@media (min-width: 640px) {
+  .signin-choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

@@ -1,43 +1,77 @@
 // @vitest-environment happy-dom
-import { describe, expect, it } from 'vitest'
-import { initLocale, setLocale } from '../src/i18n'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { initLocale, setLocale, t } from '../src/i18n'
 import { renderLanding } from '../src/ui/landing'
 import { createShell } from '../src/ui/shell'
 
-function landing(): HTMLElement {
-  initLocale()
-  setLocale('en')
+beforeEach(() => { initLocale(); setLocale('en') })
+
+function landing(busy = false, status = '') {
   const main = document.createElement('main')
-  renderLanding(main, { busy: false, error: '', onSignIn: () => {}, onBsky: () => {} })
-  return main
+  const onSignIn = vi.fn()
+  const onBsky = vi.fn()
+  renderLanding(main, { busy, status, error: '', onSignIn, onBsky })
+  return { main, onSignIn, onBsky }
 }
 
 describe('landing', () => {
-  it('has one input and one button in the form, like down.blue', () => {
-    const form = landing().querySelector('form')!
-    expect(form.querySelectorAll('input')).toHaveLength(1)
-    expect(form.querySelectorAll('button')).toHaveLength(1)
+  it('offers Bluesky and a toggle for another Atmosphere account', () => {
+    const { main, onBsky } = landing()
+    expect(main.querySelectorAll('.signin-choices button')).toHaveLength(2)
+    main.querySelector<HTMLButtonElement>('#bsky-sign-in')!.click()
+    expect(onBsky).toHaveBeenCalledOnce()
+    const toggle = main.querySelector<HTMLButtonElement>('[aria-controls="handle-form"]')!
+    const form = main.querySelector<HTMLFormElement>('#handle-form')!
+    expect(form.hidden).toBe(true)
+    toggle.click()
+    expect(form.hidden).toBe(false)
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    toggle.click()
+    expect(form.hidden).toBe(true)
   })
 
-  it('offers bsky.social as a text link in the fine print, not a button row', () => {
-    const main = landing()
-    expect(main.querySelector('.db-note #bsky-sign-in')).not.toBeNull()
-    expect(main.querySelectorAll('.btn')).toHaveLength(0)
+  it('validates the handle and submits its normalized value', () => {
+    const { main, onSignIn } = landing()
+    const form = main.querySelector('form')!
+    form.dispatchEvent(new Event('submit', { cancelable: true }))
+    expect(main.querySelector('#handle-error')?.textContent).toBe(t('handleRequired'))
+    expect(onSignIn).not.toHaveBeenCalled()
+    main.querySelector('input')!.value = ' @alice.test '
+    form.dispatchEvent(new Event('submit', { cancelable: true }))
+    expect(onSignIn).toHaveBeenCalledWith('alice.test')
   })
 
-  it('has no separate headline above the panel and promotes down.blue', () => {
-    const main = landing()
+  it('reserves an in-panel status row and disables every sign-in control while busy', () => {
+    const { main } = landing(true, t('signingIn'))
+    expect(main.querySelector('.db-panel .signin-status')?.textContent).toBe(t('signingIn'))
+    expect([...main.querySelectorAll('button, input')].every(node => (node as HTMLButtonElement).disabled)).toBe(true)
+    expect(landing().main.querySelector('.signin-status')).not.toBeNull()
+  })
+
+  it('preserves the expanded form and typed handle across renders', () => {
+    const { main } = landing()
+    main.querySelector<HTMLButtonElement>('[aria-controls="handle-form"]')!.click()
+    main.querySelector('input')!.value = 'alice.test'
+    renderLanding(main, { busy: true, error: '', onSignIn: vi.fn(), onBsky: vi.fn() })
+    expect(main.querySelector<HTMLFormElement>('form')!.hidden).toBe(false)
+    expect(main.querySelector('input')!.value).toBe('alice.test')
+  })
+
+  it('keeps the FAQ and promo after the panel', () => {
+    const { main } = landing()
     expect(main.querySelector('.headline')).toBeNull()
+    expect(main.querySelector('#faq-title')).not.toBeNull()
     expect(main.querySelector('.db-callout-promo a[href="https://down.blue"]')).not.toBeNull()
   })
 })
 
 describe('shell', () => {
-  it('has the wordmark and no tagline under it', () => {
+  it('announces status without adding a visible flow element', () => {
     const root = document.createElement('div')
-    createShell(root)
+    const shell = createShell(root)
+    shell.setStatus('Loading')
+    expect(root.querySelector('[role="status"]')?.className).toBe('sr')
+    expect(root.querySelector('[role="status"]')?.textContent).toBe('Loading')
     expect(root.querySelector('.db-wordmark .ink-block.tilt-cw')?.textContent).toBe('links')
-    expect(root.querySelector('.db-wordmark + *')).toBeNull()
-    expect(root.querySelectorAll('.db-btn-sm')).toHaveLength(2)
   })
 })
