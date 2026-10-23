@@ -1,5 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#1c1917"/>
-  <circle cx="16" cy="13" r="5" fill="#f4f1ea"/>
-  <rect x="8" y="21" width="16" height="3.5" rx="1.75" fill="#f4f1ea"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- The avatar's card on its own: paper fill, black border, hard shadow, transparent around. -->
+  <rect x="14" y="14" width="86" height="86" fill="#000"/>
+  <rect width="86" height="86" fill="#000"/>
+  <rect x="7" y="7" width="72" height="72" fill="#F4F1EA"/>
+  <g transform="translate(19 19) scale(2)" fill="none" stroke="#000" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+  </g>
 </svg>

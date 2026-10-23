@@ -1,22 +1,40 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="/theme-boot.js"></script>
+    <title>Privacy — links.notx.blue</title>
+    <meta name="description" content="What links.notx.blue stores (nothing on its server), where your Bluesky session lives, and what the image proxy does.">
+    <link rel="canonical" href="https://links.notx.blue/privacy">
+    <meta property="og:title" content="Privacy — links.notx.blue">
+    <meta property="og:description" content="What links.notx.blue stores (nothing on its server), where your Bluesky session lives, and what the image proxy does.">
+    <meta property="og:url" content="https://links.notx.blue/privacy">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="links.notx.blue">
+    <meta property="og:image" content="https://links.notx.blue/og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="links.notx.blue — custom icons for Bluesky profile links">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Privacy — links.notx.blue">
+    <meta name="twitter:description" content="What links.notx.blue stores (nothing on its server), where your Bluesky session lives, and what the image proxy does.">
+    <meta name="twitter:image" content="https://links.notx.blue/og.png">
+    <meta name="twitter:image:alt" content="links.notx.blue — custom icons for Bluesky profile links">
+    <meta name="theme-color" content="#0095DA">
     <link rel="preconnect" href="https://static.joseli.to" crossorigin>
     <link rel="preload" as="font" type="font/woff2" href="https://static.joseli.to/assets/fonts/cmu-sans-serif-500-roman.woff2" crossorigin>
     <link rel="preload" as="font" type="font/woff2" href="https://static.joseli.to/assets/fonts/cmu-serif-700-roman.woff2" crossorigin>
-    <title>Privacidade — Ícones de links / Privacy — Link icons</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.webmanifest">
   </head>
   <body>
     <div id="app"></div>
     <noscript>
       <h1>Privacidade / Privacy</h1>
-      <p>Tudo acontece no seu navegador. Os tokens OAuth ficam no IndexedDB deste navegador. Este site não guarda conta, token nem ícone. O único código no servidor é um proxy de imagem sem estado e sem logs. Ícones salvos viram blobs públicos no seu repositório Bluesky.</p>
-      <p lang="en">Everything happens in your browser. OAuth tokens stay in this browser’s IndexedDB. This site stores no account, token, or icon. The only server code is a stateless image proxy that keeps no logs. Saved icons become public blobs in your Bluesky repository.</p>
+      <p lang="pt-BR">Tudo acontece no seu navegador. Os tokens OAuth ficam no IndexedDB deste navegador. Este site não guarda conta, token nem ícone. O único código no servidor é um proxy de imagem sem estado e sem logs. Ícones salvos viram blobs públicos no seu repositório Bluesky.</p>
+      <p>Everything happens in your browser. OAuth tokens stay in this browser’s IndexedDB. This site stores no account, token, or icon. The only server code is a stateless image proxy that keeps no logs. Saved icons become public blobs in your Bluesky repository.</p>
       <p>Contato / Contact: <a href="mailto:abuse@joseli.to">abuse@joseli.to</a></p>
     </noscript>
     <script type="module" src="/src/main.ts"></script>
