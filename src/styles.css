@@ -293,6 +293,10 @@ div.alert { display: flex; flex-direction: column; align-items: flex-start; gap:
   font: var(--weight-bold) var(--text-body-sm)/1.35 var(--font-body);
   cursor: pointer;
 }
+.faq-item summary { justify-content: space-between; gap: var(--space-4); list-style: none; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after { content: '+'; font-family: var(--font-mono); flex: none; }
+.faq-item[open] summary::after { content: '−'; }
 .faq-item[open] summary { color: var(--project-ink); }
 .faq-item p { padding: 0 var(--space-6) var(--space-5); color: var(--text-2); font: var(--type-dek); }
 

@@ -990,7 +990,7 @@ function panel(title: MessageKey, id: string, ...body: Array<Node | null>): HTML
 // arrow. Both themes are drawn side by side so the icon is checked on each.
 function bskyMock(theme: 'light' | 'dark', label: string, iconSrc: string | null): HTMLElement {
   const pill = (text: string, favicon: Node, current = false) =>
-    el('span', { className: current ? 'bsky-pill current' : 'bsky-pill' },
+    el('span', { className: current ? 'bsky-pill current' : 'bsky-pill', ...(current ? { attrs: { 'aria-current': 'true' } } : {}) },
       el('span', { className: 'bsky-slot' }, favicon),
       el('span', { className: 'bsky-label', text }),
       icon('arrow-up-right', 12),
