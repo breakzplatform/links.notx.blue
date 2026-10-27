@@ -60,13 +60,22 @@ h1[tabindex="-1"]:focus { outline: none; }
   text-align: center;
   white-space: nowrap;
 }
-/* The one deviation from down.blue: this name is 15 characters, not 9, so the
-   size follows the viewport more tightly to keep it on one line on a phone. */
-.db-wordmark { font-size: min(116px, 11.4vw); }
+/* The *.notx.blue rule: the first word keeps down.blue's exact size, and the
+   shared ".notx.blue" suffix is set smaller so the whole name fits the column
+   (832px desktop, 342px at 390px) without shrinking that word. Same font,
+   weight and baseline; tracking is re-applied so it scales with the suffix.
+   Other *.notx.blue sites copy this rule and the variable as they are. */
+.db-wordmark { --wordmark-suffix-scale: 0.66; }
+.wordmark-suffix {
+  font-size: calc(var(--wordmark-suffix-scale) * 1em);
+  letter-spacing: var(--tracking-display);
+}
 .db-wordmark a, .db-wordmark a:visited, .db-wordmark a:hover { color: inherit; background: transparent; text-decoration: none; }
-/* Same gap under the wordmark as the landing panel, whose 64px margin
-   collapses with the wordmark's 24px one: only the difference is added. */
-.signed-in { padding-top: calc(var(--space-12) - var(--space-6)); }
+/* down.blue's gap from the wordmark to the first panel (its mt-15). The panel
+   margin collapses with the wordmark's 14px one, so signed-in pages, which
+   have no panel margin there, pad by the difference. */
+:root { --wordmark-gap: calc(var(--space-10) + var(--space-8)); }
+.signed-in { padding-top: calc(var(--wordmark-gap) - var(--space-6)); }
 .db-wordmark a:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 4px; }
 
 /* Meta lines, tags and labels: typewriter, uppercase, tracked out. */

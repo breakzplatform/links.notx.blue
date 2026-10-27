@@ -1,4 +1,4 @@
-.signin-panel { margin: var(--space-12) 0 var(--space-6); }
+.signin-panel { margin: var(--wordmark-gap) 0 var(--space-6); }
 .signin-body { display: grid; gap: var(--space-6); padding: var(--space-6); }
 .signin-atmosphere { font: var(--type-dek); color: var(--text-1); }
 .signin-choices { display: grid; gap: var(--space-6); grid-template-columns: minmax(0, 1fr); }

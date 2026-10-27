@@ -73,5 +73,6 @@ describe('shell', () => {
     expect(root.querySelector('[role="status"]')?.className).toBe('sr')
     expect(root.querySelector('[role="status"]')?.textContent).toBe('Loading')
     expect(root.querySelector('.db-wordmark .ink-block.tilt-cw')?.textContent).toBe('links')
+    expect(root.querySelector('.db-wordmark .wordmark-suffix')?.textContent).toBe('.notx.blue')
   })
 })

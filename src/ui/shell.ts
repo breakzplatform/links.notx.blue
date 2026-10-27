@@ -55,7 +55,7 @@ export function createShell(root: HTMLElement): Shell {
     el('div', { className: 'db-wordmark' },
       el('a', { attrs: { href: '/', 'aria-label': 'links.notx.blue' } },
         el('span', { className: 'ink-block tilt-cw' }, 'links'),
-        '.notx.blue',
+        el('span', { className: 'wordmark-suffix' }, '.notx.blue'),
       ),
     ),
   )
