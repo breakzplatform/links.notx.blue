@@ -7,7 +7,7 @@ type Copy = Record<Locale, string>
 const STORAGE_KEY = 'links.locale'
 
 const messages = {
-  appTitle: { 'pt-BR': 'links.notx.blue — Ícones próprios nos links do Bluesky', en: 'links.notx.blue — Custom icons for Bluesky profile links' },
+  appTitle: { 'pt-BR': 'Ícones próprios nos links do Bluesky • links.notx.blue', en: 'Custom icons for Bluesky profile links • links.notx.blue' },
   skip: { 'pt-BR': 'Ir para o conteúdo', en: 'Skip to content' },
   privacyLink: { 'pt-BR': 'Privacidade', en: 'Privacy' },
   themeLight: { 'pt-BR': 'claro', en: 'light' },

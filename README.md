@@ -100,6 +100,10 @@ NETLIFY_AUTH_TOKEN=... NETLIFY_SITE_ID=... npm run deploy
 
 DNS: `links` is a DNS-only CNAME to `links-notx-blue.netlify.app` on the `notx.blue` zone; Netlify issues the certificate.
 
+## Page titles
+
+Every page's `<title>`, `og:title` and `twitter:title` read `<page description> • <domain>` (U+2022 with one space on each side), with the description in the page's language: `Custom icons for Bluesky profile links • links.notx.blue`.
+
 ## Contact
 
 Abuse: abuse@notx.blue. Privacy policy: <https://notx.blue/privacy>.
