@@ -368,6 +368,7 @@ div.alert { display: flex; flex-direction: column; align-items: flex-start; gap:
   box-shadow: calc(-1 * var(--space-6)) 0 0 var(--tint), var(--space-6) 0 0 var(--tint);
   border-bottom-color: transparent;
 }
+.link:has(+ .link.green) { border-bottom-color: transparent; }
 .link .actions, .link .confirm { grid-column: 1 / -1; }
 .rank {
   font: var(--type-rank);
