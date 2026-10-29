@@ -362,7 +362,6 @@ div.alert { display: flex; flex-direction: column; align-items: flex-start; gap:
 .link.ranked { grid-template-columns: 28px 40px minmax(0, 1fr); }
 .link.green {
   background: color-mix(in srgb, var(--ink-green) 14%, var(--surface-page));
-  border-left: 4px solid var(--ink-green);
   padding-inline: var(--space-4);
 }
 .link .actions, .link .confirm { grid-column: 1 / -1; }
@@ -412,6 +411,7 @@ p.url { color: var(--text-3); }
   background-image: radial-gradient(circle at 3px 3px, var(--halftone-dot) 1px, transparent 1.5px);
   background-size: 6px 6px;
 }
+.link.green .placeholder { background: var(--ink-green); }
 
 .not-found h2 { margin-top: var(--space-8); }
 
