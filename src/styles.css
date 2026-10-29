@@ -360,9 +360,13 @@ div.alert { display: flex; flex-direction: column; align-items: flex-start; gap:
   border-bottom: 1px solid var(--border-hairline);
 }
 .link.ranked { grid-template-columns: 28px 40px minmax(0, 1fr); }
+/* The tint bleeds into the panel padding through side shadows, so the row keeps
+   the same layout as its neighbours. */
 .link.green {
-  background: color-mix(in srgb, var(--ink-green) 14%, var(--surface-page));
-  padding-inline: var(--space-4);
+  --tint: color-mix(in srgb, var(--ink-green) 14%, var(--surface-page));
+  background: var(--tint);
+  box-shadow: calc(-1 * var(--space-6)) 0 0 var(--tint), var(--space-6) 0 0 var(--tint);
+  border-bottom-color: transparent;
 }
 .link .actions, .link .confirm { grid-column: 1 / -1; }
 .rank {
@@ -411,7 +415,7 @@ p.url { color: var(--text-3); }
   background-image: radial-gradient(circle at 3px 3px, var(--halftone-dot) 1px, transparent 1.5px);
   background-size: 6px 6px;
 }
-.link.green .placeholder { background: var(--ink-green); }
+.link.green .placeholder { --halftone-dot: var(--ink-green); }
 
 .not-found h2 { margin-top: var(--space-8); }
 
