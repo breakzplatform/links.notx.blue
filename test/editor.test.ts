@@ -87,10 +87,13 @@ describe('editor panels', () => {
     expect(note.classList.contains('db-note')).toBe(true)
     expect(note.parentElement?.querySelector('#link-url')).not.toBeNull()
     input('link-url', 'https://patreon.com/example')
+    const badge = main.querySelector<HTMLElement>('#provider-badge')!
+    expect(badge.hidden).toBe(false)
     expect(note.hidden).toBe(false)
     expect(note.textContent).toContain('Patreon')
     input('link-url', 'https://example.com')
     expect(note.hidden).toBe(true)
+    expect(main.querySelector<HTMLElement>('#provider-badge')!.hidden).toBe(true)
     expect(main.querySelector('#green-note')).toBeNull()
     expect(main.textContent).not.toContain('Bluesky picks the green button from the address')
     expect(main.textContent).not.toContain('O Bluesky escolhe o botão verde pelo endereço')

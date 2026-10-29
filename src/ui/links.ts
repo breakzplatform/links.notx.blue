@@ -1,7 +1,8 @@
-import { MAX_PROFILE_LINKS, formatLinkUrl, getLinkHost } from '../lib/rules'
+import { MAX_PROFILE_LINKS, formatLinkUrl, getLinkHost, getSupportProvider } from '../lib/rules'
 import type { LinkView } from '../lib/profile-links'
 import { t } from '../i18n'
 import { el } from './dom'
+import { blueskyIconBadge } from './badge'
 import { renderFaq } from './faq'
 import { renderPromo } from './landing'
 import { icon } from './icons'
@@ -192,6 +193,7 @@ function row(
     el('div', { className: 'link-copy' },
       el('p', { className: 'link-title', text: view.label }),
       view.url,
+      !link.missing && typeof link.record?.url === 'string' && getSupportProvider(link.record.url) ? blueskyIconBadge() : null,
       view.note,
     ),
     actions,

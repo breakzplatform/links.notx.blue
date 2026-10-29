@@ -157,6 +157,8 @@ a.db-btn, a.db-btn:visited, a.db-btn:hover { color: var(--text-1); background: v
   display: inline-flex; align-items: center; padding: 5px 9px;
   font: var(--type-label); text-transform: uppercase; letter-spacing: var(--tracking-meta); text-decoration: none;
 }
+span.db-chip-bsky { background: var(--ink-green); color: var(--on-green); padding: 2px 7px; margin-top: var(--space-2); }
+span.db-chip-bsky[hidden] { display: none; }
 a.db-chip-pix, a.db-chip-pix:visited, a.db-chip-pix:hover { background: var(--ink-pix); color: var(--on-pix); }
 a.db-chip-apoiase, a.db-chip-apoiase:visited, a.db-chip-apoiase:hover { background: var(--ink-orange); color: var(--on-orange); }
 a.db-chip-card, a.db-chip-card:visited, a.db-chip-card:hover { background: #00B1EA; color: #000; }

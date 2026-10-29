@@ -30,6 +30,7 @@ import {
   type MessageKey,
 } from '../i18n'
 import { el, setText } from './dom'
+import { blueskyIconBadge } from './badge'
 import { icon } from './icons'
 import { friendlyError, invalidLinkText, partialSaveText } from './errors'
 import { formatBytes, mimeName } from './format'
@@ -187,6 +188,9 @@ export function renderEditor(
   urlInput.value = state.url
   const urlIssues = el('ul', { className: 'issues err', attrs: { id: 'url-issues' } })
   const providerNote = el('p', { className: 'db-note', attrs: { id: 'provider-note' } })
+  const providerBadge = blueskyIconBadge()
+  providerBadge.id = 'provider-badge'
+  providerBadge.hidden = true
 
   const titleInput = el('input', {
     attrs: { id: 'link-title', type: 'text', autocomplete: 'off' },
@@ -379,6 +383,7 @@ export function renderEditor(
           el('label', { className: 'label', attrs: { for: 'link-url' }, text: t('urlLabel') }),
           el('span', { className: 'field cast' }, urlInput),
           urlIssues,
+          providerBadge,
           providerNote,
         ),
         el('div', { className: 'field-block' },
@@ -808,6 +813,7 @@ export function renderEditor(
     if (checked.provider) setText(providerNote, t('greenProvider', { name: checked.provider.name }))
     else setText(providerNote, '')
     providerNote.hidden = !checked.provider
+    providerBadge.hidden = !checked.provider
 
     const count = graphemeLength(state.title)
     setText(titleCount, t('titleCount', { count, max: TITLE_MAX_GRAPHEMES }))

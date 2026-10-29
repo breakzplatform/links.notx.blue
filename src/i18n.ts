@@ -144,6 +144,11 @@ const messages = {
   titleLabel: { 'pt-BR': 'Título', en: 'Title' },
   titleHint: { 'pt-BR': 'Opcional. Se ficar vazio, o perfil mostra o domínio.', en: 'Optional. If you leave it empty, the profile shows the domain.' },
   titleCount: { 'pt-BR': '{count}/{max}', en: '{count}/{max}' },
+  blueskyIconBadge: { 'pt-BR': 'Ícone do Bluesky', en: 'Bluesky icon' },
+  blueskyIconBadgeTip: {
+    'pt-BR': 'O Bluesky mostra este link verde com o ícone dele; o ícone personalizado não aparece.',
+    en: 'Bluesky shows this link green with its own icon; a custom icon does not appear.',
+  },
   greenProvider: {
     'pt-BR': 'Este endereço corresponde a {name}, então o app mostra o botão verde com qualquer ícone que você salvar.',
     en: 'This address matches {name}, so the app shows the green button no matter which icon you save.',
