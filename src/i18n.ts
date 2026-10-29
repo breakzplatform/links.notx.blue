@@ -9,6 +9,7 @@ const STORAGE_KEY = 'links.locale'
 const messages = {
   appTitle: { 'pt-BR': 'Ícones próprios nos links do Bluesky • links.notx.blue', en: 'Custom icons for Bluesky profile links • links.notx.blue' },
   skip: { 'pt-BR': 'Ir para o conteúdo', en: 'Skip to content' },
+  statusLink: { 'pt-BR': 'status', en: 'status' },
   privacyLink: { 'pt-BR': 'Privacidade', en: 'Privacy' },
   themeLight: { 'pt-BR': 'claro', en: 'light' },
   themeDark: { 'pt-BR': 'escuro', en: 'dark' },

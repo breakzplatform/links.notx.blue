@@ -66,6 +66,7 @@ export function createShell(root: HTMLElement): Shell {
   const byAuthor = el('span')
   const viewSource = el('a', { attrs: { href: SOURCE_URL } })
   const privacy = el('a', { attrs: { href: PRIVACY_URL } })
+  const statusLink = el('a', { attrs: { href: STATUS_URL, target: '_blank', rel: 'noopener' } })
   const abuse = el('a', { attrs: { href: `mailto:${ABUSE_CONTACT}` } })
   const fromBrazil = el('p', { className: 'db-note mb-6 text-center' })
   const support = el('span', { className: 'db-micro mr-1 text-text-3' })
@@ -75,7 +76,7 @@ export function createShell(root: HTMLElement): Shell {
   const footer = el('footer', { className: 'pt-6' },
     el('p', { className: 'db-meta mb-6 text-center' },
       footerStatus, ' · ', bug, ' · ', partOf, ' ', el('a', { attrs: { href: 'https://notx.blue' }, text: 'notx.blue' }), ' ', byAuthor, ' ',
-      el('a', { attrs: { href: AUTHOR_PROFILE }, text: '@joseli.to' }), ' · ', viewSource, ' · ', privacy, ' · ', abuse,
+      el('a', { attrs: { href: AUTHOR_PROFILE }, text: '@joseli.to' }), ' · ', viewSource, ' · ', privacy, ' · ', statusLink, ' · ', abuse,
     ),
     fromBrazil,
     el('div', { className: 'mb-6 flex flex-wrap items-center justify-center gap-2' },
@@ -110,6 +111,7 @@ export function createShell(root: HTMLElement): Shell {
       setText(language, other === 'en' ? 'english' : 'português')
       language.lang = other
       setText(privacy, t('privacyLink'))
+      setText(statusLink, t('statusLink'))
       syncTheme()
     },
     setStatus(message) {
@@ -126,6 +128,7 @@ export function createShell(root: HTMLElement): Shell {
 const AUTHOR_PROFILE = 'https://bsky.app/profile/joseli.to'
 const SOURCE_URL = 'https://github.com/breakzplatform/links.notx.blue'
 const PRIVACY_URL = 'https://notx.blue/privacy'
+const STATUS_URL = 'https://status.joseli.to/'
 const BUG_FORM_EN = 'https://q.joseli.to/forms/notx-blue-bugs'
 const BUG_FORM_PT = 'https://q.joseli.to/forms/notx-blue-bugs-pt'
 
