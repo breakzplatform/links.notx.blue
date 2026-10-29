@@ -71,6 +71,7 @@ export function createShell(root: HTMLElement): Shell {
   const support = el('span', { className: 'db-micro mr-1 text-text-3' })
   const chip = (kind: string, href: string, label: string) =>
     el('a', { className: `db-chip db-chip-${kind} cast press`, attrs: { href, target: '_blank', rel: 'noopener' }, text: label })
+  const card = chip('card', 'https://link.mercadopago.com.br/breakzplatform', '')
   const footer = el('footer', { className: 'pt-6' },
     el('p', { className: 'db-meta mb-6 text-center' },
       footerStatus, ' · ', bug, ' · ', partOf, ' ', el('a', { attrs: { href: 'https://notx.blue' }, text: 'notx.blue' }), ' ', byAuthor, ' ',
@@ -80,6 +81,7 @@ export function createShell(root: HTMLElement): Shell {
     el('div', { className: 'mb-6 flex flex-wrap items-center justify-center gap-2' },
       support,
       chip('pix', 'https://pix.joseli.to', 'Pix'),
+      card,
       chip('coffee', 'https://buymeacoffee.com/joselito', 'Buy Me a Coffee'),
       chip('sponsors', 'https://github.com/sponsors/breakzplatform', 'GitHub Sponsors'),
     ),
@@ -103,6 +105,7 @@ export function createShell(root: HTMLElement): Shell {
       setText(abuse, ABUSE_CONTACT)
       setText(fromBrazil, t('fromBrazil'))
       setText(support, t('support'))
+      setText(card, t('supportCard'))
       const other = otherLocale(getLocale())
       setText(language, other === 'en' ? 'english' : 'português')
       language.lang = other
