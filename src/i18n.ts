@@ -48,7 +48,7 @@ const messages = {
     en: 'Directly from Brazil by Joselito, with much love and care. This site does not use cookies or store any of your data. It is not related to Bluesky.',
   },
   support: { 'pt-BR': 'Apoie este projeto:', en: 'Support this project:' },
-  supportCard: { 'pt-BR': 'Cartão (Mercado Pago)', en: 'Card (Mercado Pago)' },
+  supportCard: { 'pt-BR': 'Mercado Pago', en: 'Mercado Pago' },
   faqTitle: { 'pt-BR': 'Perguntas frequentes', en: 'FAQ' },
   faqWhereQ: { 'pt-BR': 'Onde o ícone aparece?', en: 'Where does the icon show up?' },
   faqWhereA: {
