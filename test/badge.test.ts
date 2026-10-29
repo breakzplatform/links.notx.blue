@@ -37,5 +37,7 @@ describe('Bluesky icon badge', () => {
     const rows = main.querySelectorAll('ol.links > li')
     expect(rows[0]!.querySelector('.db-chip-bsky')).not.toBeNull()
     expect(rows[1]!.querySelector('.db-chip-bsky')).toBeNull()
+    expect(rows[0]!.classList.contains('green')).toBe(true)
+    expect(rows[1]!.classList.contains('green')).toBe(false)
   })
 })

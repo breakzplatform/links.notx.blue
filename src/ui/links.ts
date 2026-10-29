@@ -183,7 +183,9 @@ function row(
     ? confirmBox(view.label, options.confirm.kind, options.busy, options.onConfirm, () => options.onAsk(null))
     : null
 
-  return el('li', { className: options.mode === 'shown' ? 'link ranked' : 'link' },
+  const green = !link.missing && typeof link.record?.url === 'string' && getSupportProvider(link.record.url) !== undefined
+  const classes = ['link', options.mode === 'shown' ? 'ranked' : '', green ? 'green' : ''].filter(Boolean).join(' ')
+  return el('li', { className: classes },
     options.mode === 'shown'
       ? el('span', { className: 'rank', attrs: { 'aria-hidden': 'true' }, text: String(options.index + 1) })
       : null,
@@ -193,7 +195,7 @@ function row(
     el('div', { className: 'link-copy' },
       el('p', { className: 'link-title', text: view.label }),
       view.url,
-      !link.missing && typeof link.record?.url === 'string' && getSupportProvider(link.record.url) ? blueskyIconBadge() : null,
+      green ? blueskyIconBadge() : null,
       view.note,
     ),
     actions,

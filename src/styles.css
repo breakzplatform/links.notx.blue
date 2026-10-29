@@ -360,6 +360,11 @@ div.alert { display: flex; flex-direction: column; align-items: flex-start; gap:
   border-bottom: 1px solid var(--border-hairline);
 }
 .link.ranked { grid-template-columns: 28px 40px minmax(0, 1fr); }
+.link.green {
+  background: color-mix(in srgb, var(--ink-green) 14%, var(--surface-page));
+  border-left: 4px solid var(--ink-green);
+  padding-inline: var(--space-4);
+}
 .link .actions, .link .confirm { grid-column: 1 / -1; }
 .rank {
   font: var(--type-rank);
