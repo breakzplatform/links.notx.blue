@@ -158,6 +158,7 @@ a.db-btn, a.db-btn:visited, a.db-btn:hover { color: var(--text-1); background: v
   font: var(--type-label); text-transform: uppercase; letter-spacing: var(--tracking-meta); text-decoration: none;
 }
 span.db-chip-bsky { background: var(--ink-green); color: var(--on-green); padding: 2px 7px; margin-top: var(--space-2); }
+.link-copy span.db-chip-bsky { display: flex; width: fit-content; }
 span.db-chip-bsky[hidden] { display: none; }
 a.db-chip-pix, a.db-chip-pix:visited, a.db-chip-pix:hover { background: var(--ink-pix); color: var(--on-pix); }
 a.db-chip-apoiase, a.db-chip-apoiase:visited, a.db-chip-apoiase:hover { background: var(--ink-orange); color: var(--on-orange); }
